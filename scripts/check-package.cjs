@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { existsSync, readFileSync } = require('node:fs');
-const { resolve } = require('node:path');
+const { basename, resolve } = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { parseNpmPackResult } = require('./npm-pack-result.cjs');
 
@@ -24,7 +24,8 @@ assert.equal(
   'git+https://github.com/NikitaDudin/react-native-nitro-xxhash.git',
 );
 
-const npmPath = process.env.npm_execpath;
+const npmExecPath = process.env.npm_execpath;
+const npmPath = npmExecPath && basename(npmExecPath) === 'npm-cli.js' ? npmExecPath : undefined;
 const command = npmPath ? process.execPath : 'npm';
 const args = ['pack', '--dry-run', '--json', '--ignore-scripts'];
 if (npmPath) args.unshift(npmPath);

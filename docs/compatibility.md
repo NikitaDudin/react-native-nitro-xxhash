@@ -64,18 +64,29 @@ AGP 8 hosts do not need these switches. For Expo prebuild, the [config plugin](#
 
 Install the exact required peer and apply the explicit compatibility helper from your application root:
 
+**npm**
+
 ```sh
 npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.1
 npx --no-install nitro-xxhash-compat
+```
+
+**Yarn**
+
+```sh
+yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+yarn nitro-xxhash-compat
 ```
 
 Run this on **Android and iOS before any native build or pod install**. Expo projects using the [config plugin](#expo-prebuild) in `"apply"` mode perform this step during prebuild. The helper repairs Nitro cache/reference lifetimes, runtime registries and Xcode 27 exception interoperability. It validates the installed version and known source contents before changing files; unsupported versions or conflicting patches are refused. [Repair definitions](https://github.com/NikitaDudin/react-native-nitro-xxhash/blob/main/compat/patches.json) record the exact changes and their provenance.
 
 The command changes the installed Nitro dependency shared by every Nitro library in the app. Clean stale native build artifacts and **rebuild Nitro and all native C++/Swift consumers of its headers together**. Do not mix repaired headers with prebuilt binaries compiled from the original sources.
 
-There is no automatic library `postinstall`. Reapply the helper after dependency reinstalls, including `npm ci`. Repeated application is safe. An application may append `nitro-xxhash-compat` to its existing root `postinstall`; preserve other commands in that hook.
+There is no automatic library `postinstall`. Reapply the helper after dependency reinstalls, including `npm ci` or `yarn install`. Repeated application is safe. An application may append `nitro-xxhash-compat` to its existing root `postinstall`; preserve other commands in that hook.
 
 ### Inspect or select an installation
+
+**npm**
 
 ```sh
 # Inspect without changing files.
@@ -87,11 +98,25 @@ npx --no-install nitro-xxhash-compat --nitro-path /absolute/path/to/react-native
 npx --no-install nitro-xxhash-compat --help
 ```
 
+**Yarn**
+
+```sh
+yarn nitro-xxhash-compat --check
+yarn nitro-xxhash-compat --nitro-path /absolute/path/to/react-native-nitro-modules
+yarn nitro-xxhash-compat --help
+```
+
 With no flags the command applies repairs. `--check` exits with 0 when all repairs are present, 1 when application is needed, or 2 on an error. Do not suppress failures.
 
 ### Yarn PnP and read-only dependency stores
 
-The helper requires writable, unpacked Nitro sources. Use your package manager's dependency-patching workflow to create an editable Nitro 0.37.1 workspace, apply the helper with `--nitro-path`, review the changes and persist the patch. Do not modify a shared package cache in place. If an editable workspace cannot be created, use the shipped repair definitions with the package manager's native patch mechanism.
+Yarn Classic uses the required `node_modules` layout by default. With modern Yarn, configure the application's `.yarnrc.yml` before installing native dependencies:
+
+```yaml
+nodeLinker: node-modules
+```
+
+The helper requires writable, unpacked Nitro sources. For PnP or read-only stores, use your package manager's dependency-patching workflow to create an editable Nitro 0.37.1 workspace, apply the helper with `--nitro-path`, review the changes and persist the patch. Do not modify a shared package cache in place. If an editable workspace cannot be created, use the shipped repair definitions with the package manager's native patch mechanism.
 
 ## Xcode 27 below iOS 18
 

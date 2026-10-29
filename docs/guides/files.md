@@ -128,8 +128,16 @@ When a downloaded file is needed on disk, let your storage/network layer save it
 
 For an app with Expo modules, install the optional integration:
 
+**npm**
+
 ```sh
-npx expo install expo-file-system
+npx expo install expo-file-system --npm
+```
+
+**Yarn**
+
+```sh
+yarn expo install expo-file-system --yarn
 ```
 
 This example uses the current [`File.downloadFileAsync()` API](https://docs.expo.dev/versions/latest/sdk/filesystem/#downloading-files). It creates an operation-owned cache directory and removes only that directory after hashing, including on download/hash failure:

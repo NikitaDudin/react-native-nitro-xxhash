@@ -94,7 +94,9 @@ async function main(values = process.argv.slice(2)) {
     else assert.equal(output.status, 0, `${label} failed; inspect ${path.join(logs, file)}`);
     return output;
   }
-  const npmPath = process.env.npm_execpath;
+  const npmExecPath = process.env.npm_execpath;
+  const npmPath =
+    npmExecPath && path.basename(npmExecPath) === 'npm-cli.js' ? npmExecPath : undefined;
   function npm(label, args, cwd = host) {
     return run(label, npmPath ? process.execPath : 'npm', npmPath ? [npmPath, ...args] : args, cwd);
   }

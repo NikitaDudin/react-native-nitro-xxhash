@@ -2,6 +2,8 @@
 
 Use Node.js 24.3+ within the 24.x line or Node.js 26+ and npm for repository development. The package and development tooling follow the [RN 0.88 baseline](docs/compatibility.md#versions-and-platform-baseline), with matching SDK tools pinned for development. Native checks require clang++ with ASan/UBSan runtimes and a JDK. All test and validation runners use Node.js.
 
+Repository dependencies are locked with `package-lock.json`; keep using `npm ci` for the root and website installs, and npm for packing and publishing. After installation, Yarn Classic 1.x can run the same package scripts: `npm run <script> -- <args>` becomes `yarn run <script> <args>`. Consumer applications can install the library with [npm or Yarn](docs/installation.md).
+
 ## Local checks
 
 ```sh
@@ -29,6 +31,16 @@ npm run check:specs
 npm run check:package
 ```
 
+For example, with Yarn Classic after `npm ci`:
+
+```sh
+yarn lint
+yarn typecheck
+yarn test
+yarn check:specs
+yarn check:package
+```
+
 `node compat/cli.cjs` is the repository equivalent of the consumer's `nitro-xxhash-compat` command. Repeat it after installing dependencies. The [compatibility guide](docs/compatibility.md#nitro-0371-repairs) explains inspection mode, package-manager patch workflows and the required rebuild of Nitro and its native consumers.
 
 The root is the publishable package. Change specs in `src/specs/*.nitro.ts` and handwritten native sources, then run `npm run specs`. Include regenerated `nitrogen/generated` files with the source change; never edit them manually. `npm run check:specs` verifies reproducibility.
@@ -54,6 +66,15 @@ npm run example:setup
 npm run example:typecheck
 npm run example:ios
 # Or: npm run example:android
+```
+
+Or run the scripts with Yarn Classic:
+
+```sh
+yarn example:setup
+yarn example:typecheck
+yarn example:ios
+# Or: yarn example:android
 ```
 
 Run **Run all checks** on each platform before a release. Refresh the example with `example:setup` after library changes; the command updates the local archive's lockfile integrity while keeping registry dependencies locked. Platform scripts apply the Expo config plugin before native builds, including when native directories already exist. Keep generated native projects and packed archives local, and keep all `example/` files out of the published package. CI installs and typechecks the app before linting its TypeScript.
@@ -135,7 +156,7 @@ npm run docs:build
 npm run docs:serve -- --port 4173
 ```
 
-For live editing, use `npm run docs:start`. Preview the project path `/react-native-nitro-xxhash/`, including direct navigation to nested pages. Check desktop/mobile layouts, code blocks, sidebar navigation, search and both color themes.
+For live editing, use `npm run docs:start` or `yarn docs:start` with Yarn Classic. The equivalent Yarn build and preview commands are `yarn docs:build` and `yarn docs:serve --port 4173`. Preview the project path `/react-native-nitro-xxhash/`, including direct navigation to nested pages. Check desktop/mobile layouts, code blocks, sidebar navigation, search and both color themes.
 
 Ordinary `ts` and `typescript` fenced examples are checked against emitted public declarations with strict optional properties and React Native globals, without DOM or Node ambient types. Optional Expo integration examples use the declarations bundled with the development Expo installation. Expo fetch examples additionally use standard stream declarations from the website's development dependencies, isolated from bare React Native examples; no polyfill runs at runtime. These checks do not add runtime dependencies to the hashing package. Keep each example self-contained. Use `ts api-signature` only for declaration/reference blocks that are intentionally not executable consumer examples.
 

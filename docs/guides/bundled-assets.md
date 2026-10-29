@@ -16,8 +16,16 @@ Resolve or materialize the asset through your application's asset/storage layer,
 
 In an app with [Expo modules configured](../expo.md), install the optional asset integration:
 
+**npm**
+
 ```sh
-npx expo install expo-asset
+npx expo install expo-asset --npm
+```
+
+**Yarn**
+
+```sh
+yarn expo install expo-asset --yarn
 ```
 
 [`Asset.fromModule()` and `downloadAsync()`](https://docs.expo.dev/versions/latest/sdk/asset/) provide a local copy when necessary. Keep the `require()` argument a static literal so Metro can discover the file:
@@ -105,6 +113,6 @@ config.resolver.sourceExts = config.resolver.sourceExts.filter(
 module.exports = config;
 ```
 
-An extension should not simultaneously be treated as JavaScript/source and as a binary asset. Preserve an existing custom transformer's choice, such as SVG transformed into a React component; only move extensions you intend to bundle as raw assets. Restart Metro with its cache reset after changing resolver configuration (`npx react-native start --reset-cache` or `npx expo start --clear`).
+An extension should not simultaneously be treated as JavaScript/source and as a binary asset. Preserve an existing custom transformer's choice, such as SVG transformed into a React component; only move extensions you intend to bundle as raw assets. Restart Metro with its cache reset after changing resolver configuration: use `npx react-native start --reset-cache` or `yarn react-native start --reset-cache` for bare React Native, and `npx expo start --clear` or `yarn expo start --clear` for Expo.
 
 Metro only needs this configuration for assets referenced by `require()`/imports. File helpers can hash any regular local file regardless of its extension, without a Metro change.

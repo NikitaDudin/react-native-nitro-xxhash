@@ -10,9 +10,18 @@ Requires React Native **0.88+**, iOS **15.1+** or Android **API 24+**, and **Nit
 
 For a bare React Native application:
 
+**npm**
+
 ```sh
 npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.1
 npx --no-install nitro-xxhash-compat
+```
+
+**Yarn**
+
+```sh
+yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+yarn nitro-xxhash-compat
 ```
 
 Apply the helper on both platforms before native builds or `pod install`, then rebuild Nitro and all native consumers together. Repeat after dependency installation. See [installation](docs/installation.md) for platform steps and [compatibility](docs/compatibility.md) for host settings and the iOS scene lifecycle.
@@ -21,7 +30,14 @@ Expo SDK 58 applications can use the bundled [config plugin](docs/expo.md) to pr
 
 ## Quick start
 
-For a runnable native example, see the [Expo example application](https://github.com/NikitaDudin/react-native-nitro-xxhash/tree/main/example).
+For a runnable native example, see the [Expo example application](https://github.com/NikitaDudin/react-native-nitro-xxhash/tree/main/example). From a repository checkout, install the locked development dependencies with npm, then run the example with Yarn Classic 1.x:
+
+```sh
+npm ci
+yarn example:setup
+yarn example:ios
+# Or: yarn example:android
+```
 
 ```ts
 import { xxh32, xxh3_64, xxh3_128, createHasher } from 'react-native-nitro-xxhash';

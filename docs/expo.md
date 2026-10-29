@@ -9,8 +9,16 @@ Expo SDK 58's native dependencies require iOS 16.4 or newer, even though the sta
 
 Install the package and its exact Nitro peer:
 
+**npm**
+
 ```sh
-npx expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+npx expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.1 --npm
+```
+
+**Yarn**
+
+```sh
+yarn expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.1 --yarn
 ```
 
 Register the bundled config plugin in your app configuration:
@@ -25,11 +33,23 @@ Register the bundled config plugin in your app configuration:
 
 Then generate the native projects and create a development build:
 
+**npm**
+
 ```sh
 npx expo prebuild
+npx expo run:ios
+# Or: npx expo run:android
 ```
 
-Expo SDK 58 recreates the native directories by default. Use `npx expo prebuild --no-clean` to apply changes to existing native projects instead.
+**Yarn**
+
+```sh
+yarn expo prebuild
+yarn expo run:ios
+# Or: yarn expo run:android
+```
+
+Expo SDK 58 recreates the native directories by default. Use `npx expo prebuild --no-clean` or `yarn expo prebuild --no-clean` to apply changes to existing native projects instead. To start Metro separately, use `npx expo start` or `yarn expo start`.
 
 | Option                      | Default   | Behavior                                                                                                                                                                       |
 | --------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

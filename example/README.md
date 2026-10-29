@@ -6,12 +6,25 @@ A single-screen Expo SDK 58 / React Native 0.88 application that exercises the p
 
 From the repository root:
 
+**npm**
+
 ```sh
 npm ci
 npm run example:setup
 npm run example:ios
 # Or: npm run example:android
 ```
+
+**Yarn Classic 1.x**
+
+```sh
+npm ci
+yarn example:setup
+yarn example:ios
+# Or: yarn example:android
+```
+
+The repository and example retain their npm lockfiles. Use `npm ci` for the root dependencies; Yarn Classic can launch the scripts, while setup uses npm to pack and install the example's local library archive. For installation into your own Yarn application, follow the [installation guide](../docs/installation.md).
 
 Use the [supported Node.js and native toolchains](../docs/compatibility.md). Expo SDK 58 requires iOS 16.4 or newer. Android uses the SDK/NDK choices supplied by its Expo template. Expo Go cannot run this module.
 
@@ -21,9 +34,18 @@ The platform scripts run prebuild before the native build, so the bundled config
 
 To start Metro separately or check the application types:
 
+**npm**
+
 ```sh
 npm run example:start
 npm run example:typecheck
+```
+
+**Yarn Classic**
+
+```sh
+yarn example:start
+yarn example:typecheck
 ```
 
 After changing library code, repeat `example:setup` and the platform command to refresh the installed archive and native build. Clean native build caches when changing C++/Swift/Kotlin sources or Nitro compatibility repairs. Changes to the example's own React code can use Fast Refresh.

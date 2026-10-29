@@ -5,12 +5,23 @@ description: Install react-native-nitro-xxhash, apply the Nitro compatibility he
 
 ## Install the native dependencies
 
+**npm**
+
 ```sh
 npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.1
 npx --no-install nitro-xxhash-compat
 ```
 
+**Yarn**
+
+```sh
+yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+yarn nitro-xxhash-compat
+```
+
 Nitro Modules is required on both platforms. Keep its version at exactly **0.37.1**: the shipped helper validates that source version before applying its repairs.
+
+The Yarn commands assume a `node_modules` installation. For modern Yarn configuration and immutable dependency stores, see [Yarn and dependency patching](compatibility.md#yarn-pnp-and-read-only-dependency-stores).
 
 Run the helper from your application root on **both Android and iOS**, before any native build or `pod install`. Expo SDK 58 projects using the [config plugin](expo.md) in `"apply"` mode perform this step during prebuild. It changes the installed Nitro source dependency shared by the application's Nitro libraries. After applying it, clean stale native build artifacts and rebuild Nitro and all of its native C++/Swift consumers together.
 
@@ -29,6 +40,21 @@ Then install Pods and rebuild the application:
 ```sh
 cd ios
 pod install
+cd ..
+```
+
+From the application root, launch the native app:
+
+**npm**
+
+```sh
+npx react-native run-ios
+```
+
+**Yarn**
+
+```sh
+yarn react-native run-ios
 ```
 
 With Xcode 27, the helper also applies Nitro's exception interoperability repair for deployment below iOS 18. Apps built with the iOS 27 SDK need an app-owned UIScene lifecycle using React Native's SceneDelegate integration. Follow [the lifecycle instructions](compatibility.md#ios-app-lifecycle-with-xcode-27).
@@ -36,6 +62,20 @@ With Xcode 27, the helper also applies Nitro's exception interoperability repair
 ## Android
 
 Rebuild the native application after installation. Autolinking discovers the library and its Nitro dependency; do not manually load or register the private native factory from application JavaScript.
+
+From the application root:
+
+**npm**
+
+```sh
+npx react-native run-android
+```
+
+**Yarn**
+
+```sh
+yarn react-native run-android
+```
 
 The host supplies AGP, SDK and NDK configuration. Defaults match RN 0.88: minimum SDK 24, compile SDK 37, target SDK 36 and NDK 27.1.12297006. Shared `rootProject.ext` values override the defaults. AGP 9 applications need Nitro's legacy Kotlin/DSL compatibility switches; see [Android host configuration](compatibility.md#android-host-configuration).
 

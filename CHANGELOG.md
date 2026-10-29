@@ -13,7 +13,12 @@ The initial `0.1.0` release is in development. No versions have been published.
 - Asynchronous local-file hashing with bounded native work and cancellation.
 - React Native 0.88+ support, guarded Nitro 0.37.1 compatibility repairs and an optional Expo SDK 58 prebuild plugin.
 - An iOS/Android example application, API documentation and automated JavaScript, native and package validation.
+- Yarn installation and launch instructions for React Native, Expo and the example application.
 
 ### Changed
 
 - Use `xxHash` as the native module identity on iOS and Android, with the matching `🔥 xxHash is boosted by nitro!` build message.
+
+### Fixed
+
+- Run repository package checks, code generation, example setup and Expo validation correctly when launched through Yarn.

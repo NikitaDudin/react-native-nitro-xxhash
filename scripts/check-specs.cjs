@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { createHash } = require('node:crypto');
 const { readdirSync, readFileSync } = require('node:fs');
-const { relative, resolve } = require('node:path');
+const { basename, relative, resolve } = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const root = resolve(__dirname, '..');
@@ -24,7 +24,8 @@ function snapshot(directory) {
 }
 
 const before = snapshot(generated);
-const npmPath = process.env.npm_execpath;
+const npmExecPath = process.env.npm_execpath;
+const npmPath = npmExecPath && basename(npmExecPath) === 'npm-cli.js' ? npmExecPath : undefined;
 const command = npmPath ? process.execPath : 'npm';
 const args = npmPath ? [npmPath, 'run', 'specs'] : ['run', 'specs'];
 const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' });

@@ -9,8 +9,11 @@ const repository = path.resolve(example, '..');
 const packageName = 'react-native-nitro-xxhash';
 
 function npm(arguments_, cwd) {
-  const executable = process.env.npm_execpath ? process.execPath : 'npm';
-  const args = process.env.npm_execpath ? [process.env.npm_execpath, ...arguments_] : arguments_;
+  const npmExecPath = process.env.npm_execpath;
+  const npmPath =
+    npmExecPath && path.basename(npmExecPath) === 'npm-cli.js' ? npmExecPath : undefined;
+  const executable = npmPath ? process.execPath : 'npm';
+  const args = npmPath ? [npmPath, ...arguments_] : arguments_;
   const result = spawnSync(executable, args, { cwd, stdio: 'inherit' });
   if (result.error) throw result.error;
   assert.equal(result.status, 0, `npm ${arguments_.join(' ')} failed`);
