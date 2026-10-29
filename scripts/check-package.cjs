@@ -45,6 +45,7 @@ const required = [
   'package.json',
   'README.md',
   'LICENSE',
+  'CHANGELOG.md',
   pkg.bin['nitro-xxhash-compat'],
   'compat/apply.cjs',
   'compat/patches.json',

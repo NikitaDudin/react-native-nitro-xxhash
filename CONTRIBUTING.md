@@ -143,6 +143,8 @@ The [documentation workflow](.github/workflows/docs.yml) validates pull requests
 
 ## Manual release
 
+Record notable user-facing changes in [CHANGELOG.md](CHANGELOG.md) under `Unreleased`. Keep unpublished work there without a release date. When publishing, move those entries into a `## <version> - YYYY-MM-DD` section using the publication date, remove any outdated development-status note and retain an empty `Unreleased` section for future changes. Describe API, behavior and compatibility changes rather than listing commits.
+
 The configured repository is `NikitaDudin/react-native-nitro-xxhash`. Before publishing, create the repository, confirm ownership of the npm name and complete relevant native host checks. Set the release version in `package.json` and refresh `package-lock.json` with `npm install --package-lock-only`.
 
 Run the local checks, then `npm pack`. Its `prepack` script regenerates bindings, builds JavaScript/declarations and verifies package contents. Inspect that exact tarball and install it in native hosts, applying `nitro-xxhash-compat` before native builds. CI produces an artifact and does not publish it.
