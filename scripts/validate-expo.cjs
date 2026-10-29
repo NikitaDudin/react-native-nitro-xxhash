@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const { tmpdir } = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { parseNpmPackResult } = require('./npm-pack-result.cjs');
 
 const repository = path.resolve(__dirname, '..');
 const packageName = 'react-native-nitro-xxhash';
@@ -115,7 +116,7 @@ async function main(values = process.argv.slice(2)) {
         ['pack', '--ignore-scripts', '--json', '--pack-destination', fixture],
         repository,
       );
-      archive = path.join(fixture, JSON.parse(packed.stdout)[0].filename);
+      archive = path.join(fixture, parseNpmPackResult(packed.stdout, packageName).filename);
     }
     const library = path.join(host, 'node_modules', packageName);
     fs.mkdirSync(library, { recursive: true });

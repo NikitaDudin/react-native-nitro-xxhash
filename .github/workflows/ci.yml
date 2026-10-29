@@ -88,6 +88,8 @@ jobs:
         with:
           node-version: '22.13.0'
       - run: npm run test:js && npm run test:compat && npm run test:expo
+      - name: Verify packaging with the minimum Node.js and bundled npm
+        run: npm run test:package && npm run check:package
       - uses: actions/upload-artifact@v7.0.2
         if: runner.os == 'Linux'
         with:

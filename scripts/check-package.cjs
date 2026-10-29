@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const { existsSync, readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { parseNpmPackResult } = require('./npm-pack-result.cjs');
 
 const root = resolve(__dirname, '..');
 const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
@@ -34,7 +35,7 @@ const result = spawnSync(command, args, {
 });
 if (result.error) throw result.error;
 assert.equal(result.status, 0, result.stderr);
-const [tarball] = JSON.parse(result.stdout);
+const tarball = parseNpmPackResult(result.stdout, pkg.name);
 const paths = new Set(tarball.files.map((file) => file.path));
 const compatibilityCli = tarball.files.find((file) => file.path === pkg.bin['nitro-xxhash-compat']);
 assert(
