@@ -4,6 +4,14 @@ Notable changes to `react-native-nitro-xxhash` are documented here.
 
 ## Unreleased
 
+## 0.1.2 - 2026-10-30
+
+### Changed
+
+- Optimize only the Android Debug hashing kernels by default, with an [opt-out for kernel debugging](docs/compatibility.md#android-debug-hashing).
+- Optimize only the iOS Debug hashing kernels through CocoaPods source flags, with an [Xcode setting or pod-install opt-out](docs/compatibility.md#ios-debug-hashing).
+- Use `-O2` for the iOS Release hashing kernels, with an [independent opt-out to inherit host optimization](docs/compatibility.md#ios-release-hashing).
+
 ## 0.1.1 - 2026-10-29
 
 ### Fixed

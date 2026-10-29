@@ -1,4 +1,5 @@
 // Compile package C++/ObjC++ sources and repaired Nitro units with installed headers.
+const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {
@@ -15,12 +16,48 @@ const deploymentTarget = process.env.IOS_DEPLOYMENT_TARGET || '15.1';
 if (!/^\d+\.\d+(?:\.\d+)?$/.test(deploymentTarget))
   throw new Error('IOS_DEPLOYMENT_TARGET must be an iOS version such as 15.1.');
 
+function validatePodspecSourceLayout(podspec) {
+  const kernels = ['cpp/Armv7Neon.cpp', 'cpp/FileDigest.cpp'];
+  assert(!podspec.source_files, 'Root sources would inherit kernel compiler flags');
+  assert(!podspec.exclude_files, 'Root exclusions would also remove kernel sources');
+  assert(!podspec.compiler_flags, 'Root compiler flags would affect every source');
+  assert.equal(podspec.default_subspecs, 'Core');
+  const core = podspec.subspecs?.find((spec) => spec.name === 'Core');
+  const kernel = podspec.subspecs?.find((spec) => spec.name === 'Kernels');
+  assert(core && kernel, 'Core and Kernels subspecs are required');
+  assert.deepEqual([...kernel.source_files].sort(), kernels);
+  assert.deepEqual([...core.exclude_files].sort(), kernels);
+  assert(core.dependencies?.['xxHash/Kernels'], 'Core must include the kernel subspec');
+  assert(core.dependencies?.NitroModules, 'Core must retain Nitrogen native dependencies');
+  assert(!core.compiler_flags, 'Core wrappers must retain their build configuration flags');
+  assert.equal(
+    kernel.compiler_flags,
+    '$(XXHASH_DEBUG_KERNEL_FLAGS) $(XXHASH_RELEASE_KERNEL_FLAGS)',
+  );
+  const settings = podspec.pod_target_xcconfig;
+  for (const configuration of ['Debug', 'Release']) {
+    const mode = configuration.toUpperCase();
+    const prefix = `XXHASH_${mode}_KERNEL_FLAGS`;
+    assert(['YES', 'NO'].includes(settings?.[`XXHASH_OPTIMIZE_${mode}`]));
+    assert.equal(settings[prefix], `$(${prefix}_$(CONFIGURATION)_$(XXHASH_OPTIMIZE_${mode}))`);
+    for (const target of ['Debug', 'Release']) {
+      assert.equal(settings[`${prefix}_${target}_YES`], target === configuration ? '-O2' : '');
+      assert.equal(settings[`${prefix}_${target}_NO`], '');
+    }
+  }
+  for (const key of ['CLANG_CXX_LANGUAGE_STANDARD', 'DEFINES_MODULE']) {
+    assert(!core.pod_target_xcconfig?.[key], `Do not duplicate inherited ${key}`);
+  }
+  return kernels;
+}
+
 function main() {
   if (!fs.existsSync(path.join(nitro, 'cpp')) || !fs.existsSync(reactNative))
     throw new Error('Run npm ci before checking iOS sources.');
   const podspec = JSON.parse(
     run('pod', ['ipc', 'spec', path.join(ROOT, 'xxHash.podspec'), '--silent']).stdout,
   );
+  validatePodspecSourceLayout(podspec);
   withTemporaryDirectory('nitro-xxhash-ios-', (directory) => {
     const include = path.join(directory, 'headers/NitroModules');
     const podsRoot = path.join(directory, 'Pods');
@@ -139,4 +176,5 @@ function main() {
   });
 }
 
-main();
+if (require.main === module) main();
+module.exports = { validatePodspecSourceLayout };

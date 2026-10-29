@@ -32,6 +32,16 @@ Apps built with the iOS 27 SDK must adopt [UIKit's scene lifecycle](https://deve
 
 Use [React Native's SceneDelegate entry points and migration instructions](https://reactnative.dev/blog/2026/10/19/react-native-0.88#ios-scenedelegate-support), preserving application bootstrap, initial URLs, user activities and window behavior. The Nitro helper does not configure application lifecycle.
 
+### iOS Debug hashing
+
+In the standard `Debug` configuration, CocoaPods applies `-O2` only to `FileDigest.cpp` and `Armv7Neon.cpp`. Wrappers and generated bindings keep the target's Debug settings, symbols and checks. Optimized kernel code can skip or reorder source lines while stepping.
+
+Set the Xcode build setting `XXHASH_OPTIMIZE_DEBUG=NO` to debug unoptimized kernels; this takes effect without reinstalling Pods. For a persistent generated default, run `XXHASH_OPTIMIZE_DEBUG=NO pod install` from the app's `ios/` directory. Use `YES` to restore the default. Rebuild the native target after changing either setting. The root pod continues to select both implementation subspecs automatically.
+
+### iOS Release hashing
+
+In the standard `Release` configuration, the same two kernels use `-O2` by default; wrappers and generated bindings inherit the host's Release flags. Set the independent Xcode build setting `XXHASH_OPTIMIZE_RELEASE=NO` to retain the host's optimization for kernels too, commonly `-Os`. For a persistent generated default, run `XXHASH_OPTIMIZE_RELEASE=NO pod install`. Use `YES` to restore `-O2`, and rebuild the native target after changing either setting. Debug configuration is controlled separately by `XXHASH_OPTIMIZE_DEBUG`.
+
 ## Expo prebuild
 
 Expo SDK 58 applications can use the bundled [config plugin](expo.md) to prepare Nitro during native generation. The Expo guide owns plugin options, setup and prebuild limitations.
@@ -48,6 +58,12 @@ The host supplies AGP and the React Native Gradle plugin. Shared `rootProject.ex
 | `ndkVersion`        | 27.1.12297006; an explicit host `ndkPath` is also supported. |
 
 Expose these shared values when using a version catalog or configuring SDKs only in the app module. The application owns its final target SDK. The package does not pin AGP; the [RN 0.88 version catalog](https://github.com/facebook/react-native/blob/v0.88.0/packages/react-native/gradle/libs.versions.toml) provides its standard toolchain versions.
+
+### Android Debug hashing
+
+Android Debug builds compile only the hashing kernels (`FileDigest.cpp` and `Armv7Neon.cpp`) with `-O2` by default. xxHash's hot loops depend on compiler optimization and inlining; the JSI wrappers and other sources retain the host's Debug flags, debug symbols and checks. Release flags are unchanged. Stepping through optimized kernel code can skip or reorder source lines.
+
+For unoptimized kernel debugging, set `xxhashOptimizeDebug=false` in the application's `android/gradle.properties`, or pass `-PxxhashOptimizeDebug=false` to its Gradle build. The library always forwards `XXHASH_OPTIMIZE_DEBUG=ON` or `OFF` to CMake, so changing this property updates an existing native build cache. Direct CMake consumers can use `-DXXHASH_OPTIMIZE_DEBUG=OFF`; the option defaults to `ON`. Rebuild the Android native library after changing it.
 
 ### Android Gradle Plugin 9
 

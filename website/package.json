@@ -1,6 +1,6 @@
 {
   "name": "nitro-xxhash-documentation",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "start": "docusaurus start --host 127.0.0.1 --no-open",

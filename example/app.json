@@ -2,7 +2,7 @@
   "expo": {
     "name": "xxHash Example",
     "slug": "nitro-xxhash-example",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "orientation": "portrait",
     "ios": {
       "bundleIdentifier": "com.nitroxxhash.example",

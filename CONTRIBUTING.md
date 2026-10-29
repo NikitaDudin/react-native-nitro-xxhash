@@ -1,6 +1,6 @@
 # Contributing
 
-Use Node.js 24.3+ within the 24.x line or Node.js 26+ and npm for repository development. The package and development tooling follow the [RN 0.88 baseline](docs/compatibility.md#versions-and-platform-baseline), with matching SDK tools pinned for development. Native checks require clang++ with ASan/UBSan runtimes and a JDK. All test and validation runners use Node.js.
+Use Node.js 24.3+ within the 24.x line or Node.js 26+ and npm for repository development. The package and development tooling follow the [RN 0.88 baseline](docs/compatibility.md#versions-and-platform-baseline), with matching SDK tools pinned for development. Native checks require clang++ with ASan/UBSan runtimes, CMake 3.22+ and a JDK. All test and validation runners use Node.js.
 
 Repository dependencies are locked with `package-lock.json`; keep using `npm ci` for the root and website installs, and npm for packing and publishing. After installation, Yarn Classic 1.x can run the same package scripts: `npm run <script> -- <args>` becomes `yarn run <script> <args>`. Consumer applications can install the library with [npm or Yarn](docs/installation.md).
 
@@ -106,7 +106,7 @@ npm run validate:ios-sources
 npm run validate:nitro-ios-compat
 ```
 
-Both default to deployment target 15.1; `IOS_DEPLOYMENT_TARGET` selects a higher target. The source check evaluates the podspec and compiles C++/Objective-C++ for arm64 device and Simulator. It keeps Nitro 0.37.1's private `ThreadPool.hpp` outside the general header map and verifies that removing the podspec's private header search path reproduces the missing-header failure. The strict exception-import regression requires Xcode 27 and compiles Nitro's actual Swift/C++ paths before and after the repair. These checks do not replace full application linking or runtime tests.
+Both default to deployment target 15.1; `IOS_DEPLOYMENT_TARGET` selects a higher target. The source check validates the Core/Kernels source split and flag settings, then compiles C++/Objective-C++ for arm64 device and Simulator. It keeps Nitro 0.37.1's private `ThreadPool.hpp` outside the general header map and verifies that removing the podspec's private header search path reproduces the missing-header failure. `tests/ios-validation.test.cjs` also checks an isolated local CocoaPods project and expanded Xcode settings for the independent Debug/Release kernel switches when those tools are available. The strict exception-import regression requires Xcode 27 and compiles Nitro's actual Swift/C++ paths before and after the repair. These checks do not replace full application linking or runtime tests.
 
 Use `tests/runtime.ts` in a separate React Native host to check the public API. Install the packed package, apply its compatibility helper, and exercise cold import, first use, repeated calls, invalid input, native reload and failure recovery. Follow the [application lifecycle requirements](docs/compatibility.md#ios-app-lifecycle-with-xcode-27) when configuring an iOS host.
 
@@ -176,7 +176,7 @@ Authenticate with npm and publish the reviewed tarball explicitly:
 
 ```sh
 npm login
-npm publish ./react-native-nitro-xxhash-0.1.1.tgz --access public
+npm publish ./react-native-nitro-xxhash-0.1.2.tgz --access public
 ```
 
 Use the actual version's filename. Tag the reviewed release as `v<version>` and create the matching GitHub release; the podspec uses that tag. See the [npm publish documentation](https://docs.npmjs.com/cli/v11/commands/npm-publish/).

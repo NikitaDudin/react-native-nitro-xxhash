@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-xxhash",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Native XXH32, XXH64, XXH3-64 and XXH3-128 hashing for React Native, with seeded, streaming and local-file APIs.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -35,7 +35,7 @@
     "specs": "npm run typecheck && nitrogen",
     "check:specs": "node scripts/check-specs.cjs",
     "test:js": "node --expose-gc --test tests/public.test.cjs tests/stream.test.cjs tests/stream-memory.test.cjs tests/file-memory.test.cjs tests/file-queue.test.cjs",
-    "test:native": "node --test --test-concurrency=1 tests/native-test-utils.test.cjs tests/android-validation.test.cjs tests/nitro-cache-fixture.test.cjs tests/native.test.cjs tests/algorithms.test.cjs tests/buffer-ranges.test.cjs",
+    "test:native": "node --test --test-concurrency=1 tests/native-test-utils.test.cjs tests/android-validation.test.cjs tests/ios-validation.test.cjs tests/nitro-cache-fixture.test.cjs tests/native.test.cjs tests/algorithms.test.cjs tests/buffer-ranges.test.cjs",
     "test": "npm run test:js && npm run test:compat && npm run test:expo && npm run test:package && npm run test:native",
     "test:package": "node --test tests/npm-pack-result.test.cjs",
     "test:compat": "node --test tests/compat.test.cjs",
