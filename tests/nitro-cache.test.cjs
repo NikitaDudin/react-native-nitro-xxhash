@@ -48,6 +48,9 @@ test('real patched Nitro headers preserve concurrent reference lifetimes and amo
         '-O1',
         '-DNDEBUG',
         '-pthread',
+        // Nitro 0.37.1's TypeInfo source relies on a libc++ transitive include.
+        '-include',
+        'unordered_map',
         ...flags,
         ...includes,
         ...sources,
