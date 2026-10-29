@@ -1,0 +1,193 @@
+:root {
+  --ifm-color-primary: #087c78;
+  --ifm-color-primary-dark: #076f6c;
+  --ifm-color-primary-darker: #076966;
+  --ifm-color-primary-darkest: #065754;
+  --ifm-color-primary-light: #098984;
+  --ifm-color-primary-lighter: #098f8a;
+  --ifm-color-primary-lightest: #0aa19c;
+  --ifm-font-family-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --ifm-code-font-size: 89%;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.75;
+  --ifm-heading-font-weight: 650;
+  --ifm-navbar-height: 4rem;
+  --ifm-navbar-shadow: 0 1px 0 #e8ecee;
+  --ifm-toc-border-color: #e6eceb;
+  --ifm-background-color: #fff;
+  --ifm-menu-color: #4a565b;
+  --ifm-menu-color-background-active: #e9f6f3;
+  --ifm-global-radius: 0.55rem;
+  --ifm-code-border-radius: 0.35rem;
+  --docusaurus-highlighted-code-line-bg: #e8f2f0;
+  --doc-sidebar-width: 274px;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #66d9c8;
+  --ifm-color-primary-dark: #49d2be;
+  --ifm-color-primary-darker: #3bceb9;
+  --ifm-color-primary-darkest: #2aaf9c;
+  --ifm-color-primary-light: #83e0d2;
+  --ifm-color-primary-lighter: #91e4d8;
+  --ifm-color-primary-lightest: #bcefe8;
+  --ifm-background-color: #111719;
+  --ifm-background-surface-color: #182023;
+  --ifm-navbar-background-color: #111719;
+  --ifm-navbar-shadow: 0 1px 0 #2a3437;
+  --ifm-toc-border-color: #2a3437;
+  --ifm-font-color-base: #e1e8e9;
+  --ifm-menu-color: #a8b8bc;
+  --ifm-menu-color-background-active: #193a37;
+  --docusaurus-highlighted-code-line-bg: #284240;
+}
+
+.navbar__title {
+  font-size: 1.05rem;
+  letter-spacing: -0.035em;
+}
+.navbar__link {
+  font-size: 0.91rem;
+  font-weight: 550;
+}
+.navbar__inner {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.menu {
+  font-size: 0.88rem;
+  padding: 1.25rem 0.8rem !important;
+}
+.menu__link {
+  padding: 0.45rem 0.8rem;
+  line-height: 1.45;
+}
+.menu__list .menu__list {
+  border-left: 1px solid var(--ifm-toc-border-color);
+  margin-left: 0.9rem;
+  padding-left: 0.45rem;
+}
+.menu__link--sublist {
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+.markdown h1 {
+  font-size: clamp(2.1rem, 4vw, 2.85rem);
+  letter-spacing: -0.05em;
+  line-height: 1.15;
+  margin-bottom: 1.4rem;
+}
+.markdown h2 {
+  font-size: 1.65rem;
+  letter-spacing: -0.035em;
+  margin-top: 2.8rem;
+}
+.markdown h3 {
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+.markdown a:not(.api-card) {
+  text-underline-offset: 3px;
+}
+.markdown pre {
+  border: 1px solid var(--ifm-toc-border-color);
+  box-shadow: none;
+}
+.markdown table {
+  width: 100%;
+  font-size: 0.88rem;
+}
+.markdown th,
+.markdown td {
+  padding: 0.7rem 0.8rem;
+}
+.markdown code {
+  font-weight: 450;
+}
+.table-of-contents {
+  font-size: 0.78rem;
+}
+.pagination-nav__link {
+  border-color: var(--ifm-toc-border-color);
+}
+.footer {
+  border-top: 1px solid var(--ifm-toc-border-color);
+  background: var(--ifm-background-color);
+}
+.footer__title {
+  font-size: 0.9rem;
+}
+.footer__link-item,
+.footer__copyright {
+  font-size: 0.82rem;
+}
+.docs-eyebrow {
+  color: var(--ifm-color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.docs-lead {
+  font-size: 1.15rem;
+  color: var(--ifm-color-emphasis-700);
+  max-width: 40rem;
+}
+.api-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.6rem 0 2.4rem;
+}
+.api-card {
+  display: block;
+  border: 1px solid var(--ifm-toc-border-color);
+  border-radius: 0.7rem;
+  padding: 1.1rem 1.2rem;
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+.api-card:hover {
+  text-decoration: none;
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-font-color-base);
+  background: var(--ifm-menu-color-background-active);
+}
+.api-card strong {
+  display: block;
+  color: var(--ifm-color-primary);
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+.api-card span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.55;
+}
+@media (min-width: 997px) {
+  .theme-doc-markdown {
+    padding: 0.9rem 0.6rem;
+  }
+  .main-wrapper {
+    min-height: 75vh;
+  }
+}
+@media (max-width: 600px) {
+  .api-cards {
+    grid-template-columns: 1fr;
+  }
+  .markdown table {
+    font-size: 0.8rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .api-card {
+    transition: none;
+  }
+}

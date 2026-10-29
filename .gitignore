@@ -1,0 +1,17 @@
+node_modules/
+.vscode/
+lib/
+*.tgz
+.DS_Store
+coverage/
+*.log
+android/.cxx/
+android/.gradle/
+android/build/
+ios/build/
+Pods/
+
+website/.docusaurus/
+website/build/
+docs/contributing.md
+docs/api/exports.md

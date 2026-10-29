@@ -1,0 +1,17 @@
+node_modules/
+.vscode/
+lib/
+nitrogen/generated/
+cpp/vendor/
+package-lock.json
+*.tgz
+example/.expo/
+example/.artifacts/
+example/ios/
+example/android/
+
+website/.docusaurus/
+website/build/
+website/package-lock.json
+docs/contributing.md
+docs/api/exports.md

@@ -1,0 +1,28 @@
+{
+  "name": "nitro-xxhash-documentation",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "docusaurus start --host 127.0.0.1 --no-open",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve --host 127.0.0.1 --no-open",
+    "clear": "docusaurus clear",
+    "prestart": "node scripts/generate-content.cjs",
+    "prebuild": "node scripts/generate-content.cjs"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@easyops-cn/docusaurus-search-local": "0.55.3",
+    "@mdx-js/react": "3.1.1",
+    "prism-react-renderer": "2.4.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "engines": {
+    "node": ">=20.19.4"
+  },
+  "devDependencies": {
+    "web-streams-polyfill": "4.3.0"
+  }
+}

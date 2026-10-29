@@ -1,0 +1,3 @@
+* text=auto eol=lf
+nitrogen/generated/** linguist-generated=true
+cpp/vendor/xxhash.h linguist-vendored=true

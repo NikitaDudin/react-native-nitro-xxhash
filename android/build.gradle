@@ -1,0 +1,89 @@
+plugins {
+  id 'com.android.library'
+  id 'com.facebook.react'
+}
+
+group = 'com.margelo.nitro.filehash'
+version = new groovy.json.JsonSlurper().parse(file('../package.json')).version
+
+def reactNativeArchitectures() {
+  def value = project.getProperties().get("reactNativeArchitectures")
+  return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+}
+
+def safeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+android {
+  if (rootProject.hasProperty("ndkPath")) {
+    ndkPath = rootProject.ext.ndkPath
+  }
+  if (rootProject.hasProperty("ndkVersion")) {
+    ndkVersion = rootProject.ext.ndkVersion
+  } else if (!rootProject.hasProperty("ndkPath")) {
+    ndkVersion = "27.1.12297006"
+  }
+
+  namespace = "com.margelo.nitro.filehash"
+  compileSdk = safeExtGet("compileSdkVersion", 37)
+
+  defaultConfig {
+    minSdk = Math.max(24, safeExtGet("minSdkVersion", 24))
+    targetSdk = safeExtGet("targetSdkVersion", 36)
+
+    externalNativeBuild {
+      cmake {
+        abiFilters(*reactNativeArchitectures())
+        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+      }
+    }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path = file("CMakeLists.txt")
+    }
+  }
+
+  buildFeatures {
+    prefab = true
+  }
+
+  packaging {
+    jniLibs {
+      // The host supplies these through the Nitro and React Native dependencies.
+      // Repackaging imported prefab libraries would duplicate them in AAR consumers.
+      excludes += [
+        '**/libNitroModules.so',
+        '**/libc++_shared.so',
+        '**/libfbjni.so',
+        '**/libjsi.so',
+        '**/libreactnative.so',
+      ]
+    }
+  }
+
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+  }
+}
+
+dependencies {
+  implementation "com.facebook.react:react-native:+"
+  implementation project(':react-native-nitro-modules')
+}
+
+// `Delete` resolves its target at configuration time. The previous form read
+// `projectDir` and called `delete` inside `doFirst`, i.e. touched the Gradle
+// script object at execution time, which the configuration cache rejects.
+tasks.register("cleanCmakeCache", Delete) {
+  delete layout.projectDirectory.dir(".cxx")
+}
+
+tasks.matching { task ->
+  task.name == "clean" || task.name.startsWith("externalNativeBuildClean")
+}.configureEach {
+  dependsOn(tasks.named("cleanCmakeCache"))
+}

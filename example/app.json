@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "xxHash Example",
+    "slug": "nitro-xxhash-example",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "com.nitroxxhash.example",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.nitroxxhash.example"
+    },
+    "plugins": ["react-native-nitro-xxhash"]
+  }
+}

@@ -1,0 +1,13 @@
+Checks: >-
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  -performance-enum-size
+# Keep the core enum representation stable; its invalid-value checks are tested.
+# Shrinking it is an ABI/storage decision, not a lint-driven optimization.
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(^|/)(cpp|tests|android/src/main/cpp)/'
+ExcludeHeaderFilterRegex: '(^|/)(node_modules|nitrogen/generated|cpp/vendor|NitroModules)/'
+SystemHeaders: false
+FormatStyle: file

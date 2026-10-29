@@ -1,0 +1,149 @@
+{
+  "name": "react-native-nitro-xxhash",
+  "version": "0.1.0",
+  "description": "Native XXH32, XXH64, XXH3-64 and XXH3-128 hashing for React Native, with seeded, streaming and local-file APIs.",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "bin": {
+    "nitro-xxhash-compat": "compat/cli.cjs"
+  },
+  "files": [
+    "index.ts",
+    "src",
+    "native",
+    "lib",
+    "compat",
+    "app.plugin.js",
+    "plugin",
+    "cpp",
+    "android/build.gradle",
+    "android/CMakeLists.txt",
+    "android/src",
+    "nitrogen/generated",
+    "nitro.json",
+    "NitroFileHash.podspec",
+    "react-native.config.js",
+    "README.md",
+    "LICENSE",
+    "docs",
+    "CONTRIBUTING.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "node scripts/clean-build.cjs && tsc -p tsconfig.build.json",
+    "specs": "npm run typecheck && nitrogen",
+    "check:specs": "node scripts/check-specs.cjs",
+    "test:js": "node --expose-gc --test tests/public.test.cjs tests/stream.test.cjs tests/stream-memory.test.cjs tests/file-memory.test.cjs tests/file-queue.test.cjs",
+    "test:native": "node --test --test-concurrency=1 tests/native-test-utils.test.cjs tests/android-validation.test.cjs tests/nitro-cache-fixture.test.cjs tests/native.test.cjs tests/algorithms.test.cjs tests/buffer-ranges.test.cjs",
+    "test": "npm run test:js && npm run test:compat && npm run test:expo && npm run test:native",
+    "test:compat": "node --test tests/compat.test.cjs",
+    "test:expo": "node --test tests/expo-plugin.test.cjs",
+    "validate:expo": "node scripts/validate-expo.cjs",
+    "example:setup": "node example/scripts/setup.cjs",
+    "example:start": "npm --prefix example run start --",
+    "example:ios": "npm --prefix example run ios --",
+    "example:android": "npm --prefix example run android --",
+    "example:typecheck": "npm --prefix example run typecheck",
+    "check:package": "node scripts/check-package.cjs",
+    "prepack": "npm run specs && npm run build && npm run check:package",
+    "typecheck:runtime": "tsc --noEmit -p tsconfig.runtime.json",
+    "test:bindings": "node --test tests/bindings.test.cjs",
+    "test:types": "node --test tests/types.test.cjs",
+    "test:file-executor": "node --test tests/file-executor.test.cjs",
+    "test:nitro-cache": "node --test tests/nitro-cache.test.cjs",
+    "test:hermes": "node --test tests/hermes.test.cjs",
+    "bench:strings": "node tests/native/strings/run.cjs",
+    "test:android-loader": "node --test tests/android-loader.test.cjs",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "format:native:check": "node scripts/check-native-format.cjs",
+    "format:native": "node scripts/check-native-format.cjs --write",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "lint:native:prepare": "node scripts/prepare-native-lint.cjs",
+    "lint:native": "node scripts/check-native-lint.cjs --require-jni --require-hermes",
+    "validate:android": "node scripts/validate-android.cjs",
+    "validate:ios-sources": "node scripts/validate-ios-sources.cjs",
+    "validate:nitro-ios-compat": "node scripts/validate-nitro-ios-compat.cjs",
+    "test:nitro-registry": "node --test tests/nitro-registry.test.cjs",
+    "test:threadpool-startup": "node --test tests/threadpool-startup.test.cjs",
+    "docs:check": "node scripts/check-docs.cjs",
+    "docs:start": "npm --prefix website run start --",
+    "docs:build": "npm --prefix website run build",
+    "docs:serve": "npm --prefix website run serve --"
+  },
+  "author": "Nikita Dudin",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "^58.0.0",
+    "react-native": ">=0.88.0",
+    "react-native-nitro-modules": "0.37.1"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@cpp-linter/clang-format": "23.1.3",
+    "@cpp-linter/clang-tidy": "23.1.3",
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.19.11",
+    "@types/react": "19.2.14",
+    "buffer": "6.0.3",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "expo": "58.0.20",
+    "globals": "17.13.0",
+    "nitrogen": "0.37.1",
+    "prettier": "3.8.1",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-nitro-modules": "0.37.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0"
+  },
+  "codegenConfig": {
+    "name": "NitroFileHashLoaderSpec",
+    "type": "modules",
+    "jsSrcsDir": "native",
+    "android": {
+      "javaPackageName": "com.margelo.nitro.filehash"
+    }
+  },
+  "react-native": "./index.ts",
+  "source": "./index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NikitaDudin/react-native-nitro-xxhash.git"
+  },
+  "homepage": "https://NikitaDudin.github.io/react-native-nitro-xxhash/",
+  "bugs": {
+    "url": "https://github.com/NikitaDudin/react-native-nitro-xxhash/issues"
+  },
+  "keywords": [
+    "react-native",
+    "nitro-modules",
+    "xxhash",
+    "xxh32",
+    "xxh64",
+    "xxh3",
+    "hash",
+    "streaming",
+    "ios",
+    "android",
+    "cpp"
+  ],
+  "contributors": [
+    {
+      "name": "Nikita Dudin",
+      "url": "https://github.com/NikitaDudin"
+    }
+  ],
+  "engines": {
+    "node": "^22.13.0 || ^24.3.0 || >=26.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

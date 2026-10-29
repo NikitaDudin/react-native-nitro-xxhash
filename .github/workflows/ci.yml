@@ -1,0 +1,166 @@
+name: Validate package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: TypeScript, generated bindings and native core (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: node compat/cli.cjs
+      - run: npm run example:setup
+      - run: npm run example:typecheck
+      - run: npm run format:check
+      - run: npm run format:native:check
+      - run: npm run lint
+      - run: npm run lint:native:prepare
+      - run: npm run lint:native
+      - run: npm run typecheck
+      - run: npm run typecheck:runtime
+      - run: npm run build
+      - run: npm run test:types
+      - run: node --test tests/native/strings/*.test.cjs
+      - run: npm run check:specs
+      - run: npm test
+      - run: npm run test:bindings
+      - run: npm run test:file-executor
+      - run: npm run test:threadpool-startup
+      - run: npm run test:nitro-cache
+      - name: Prepare pinned macOS Hermes SDK
+        if: runner.os == 'macOS'
+        run: |
+          hermes_archive="$RUNNER_TEMP/nitro-xxhash-hermes-release.tar.gz"
+          hermes_sdk="$RUNNER_TEMP/nitro-xxhash-hermes"
+          curl --fail --location --retry 3 \
+            https://repo.maven.apache.org/maven2/com/facebook/hermes/hermes-ios/260318099.0.4/hermes-ios-260318099.0.4-hermes-ios-release.tar.gz \
+            --output "$hermes_archive"
+          printf '%s  %s\n' b0db43628abc20b5eccb7ed1161801f418830f47b1ac1b5946cf532a886841f6 "$hermes_archive" | shasum -a 256 -c -
+          mkdir -p "$hermes_sdk"
+          tar -xzf "$hermes_archive" -C "$hermes_sdk" ./destroot/include ./destroot/Library/Frameworks/macosx
+          printf 'HERMES_ROOT=%s/destroot\n' "$hermes_sdk" >> "$GITHUB_ENV"
+      - run: npm run test:hermes
+        if: runner.os == 'macOS'
+      - run: npm run test:nitro-registry
+        if: runner.os == 'macOS'
+      - run: npm run test:android-loader
+      - run: npm run check:package
+      - name: Verify Expo prebuild from the packed package
+        run: npm run validate:expo -- --platform ${{ runner.os == 'macOS' && 'ios' || 'android' }}
+      - run: npm pack
+      - uses: actions/upload-artifact@v7.0.2
+        if: runner.os == 'Linux'
+        with:
+          name: npm-package
+          path: '*.tgz'
+          if-no-files-found: error
+      - name: Use the minimum supported Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.13.0'
+      - run: npm run test:js && npm run test:compat && npm run test:expo
+
+  android:
+    name: Android host and AAR (${{ matrix.profile }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: rn88
+            react-native: '0.88.0'
+            react: '19.3.0'
+            gradle: '9.6.0'
+            gradle-sha256: bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01
+            compile-sdk: '37'
+            build-tools: '37.0.0'
+            ndk: '30.0.16248370'
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - name: Install isolated host dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/native-dependencies" \
+            --ignore-scripts --no-audit --no-fund --save-exact \
+            react-native@${{ matrix.react-native }} react@${{ matrix.react }} \
+            react-native-nitro-modules@0.37.1
+      - name: Install the host Android toolchain
+        run: |
+          sdkmanager "platforms;android-${{ matrix.compile-sdk }}" \
+            "build-tools;${{ matrix.build-tools }}" "ndk;${{ matrix.ndk }}" "cmake;3.22.1"
+          curl --fail --location --retry 3 \
+            "https://services.gradle.org/distributions/gradle-${{ matrix.gradle }}-bin.zip" \
+            --output "$RUNNER_TEMP/gradle.zip"
+          printf '%s  %s\n' '${{ matrix.gradle-sha256 }}' "$RUNNER_TEMP/gradle.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP"
+          printf 'GRADLE_BIN=%s/gradle-${{ matrix.gradle }}/bin/gradle\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Build all ABIs and verify project and prebuilt consumers
+        run: |
+          node scripts/validate-android.cjs --profile ${{ matrix.profile }} \
+            --dependencies-root "$RUNNER_TEMP/native-dependencies" \
+            --output "$RUNNER_TEMP/android-${{ matrix.profile }}"
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: android-${{ matrix.profile }}
+          path: ${{ runner.temp }}/android-${{ matrix.profile }}
+          if-no-files-found: warn
+
+  ios-sources:
+    name: iOS 15.1 sources (RN 0.88)
+    runs-on: macos-latest
+    env:
+      IOS_DEPLOYMENT_TARGET: '15.1'
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node compat/cli.cjs
+      - run: npm run typecheck:runtime
+      - run: npm run build && npm run test:types
+      - run: npm run validate:ios-sources
+      - name: Reproduce the Xcode 27 exception backport regression when available
+        run: |
+          xcode_major=$(xcodebuild -version | awk '/^Xcode / {split($2, parts, "."); print parts[1]}')
+          if [ "$xcode_major" -ge 27 ]; then
+            npm run validate:nitro-ios-compat
+          else
+            echo '::notice::The strict exception-import reproduction requires Xcode 27; iOS source checks ran with the selected toolchain.'
+          fi

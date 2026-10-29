@@ -1,0 +1,21 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["xxhash"],
+  "ios": {
+    "iosModuleName": "NitroFileHash"
+  },
+  "android": {
+    "androidNamespace": ["filehash"],
+    "androidCxxLibName": "NitroFileHash"
+  },
+  "autolinking": {
+    "FileHasher": {
+      "all": {
+        "language": "c++",
+        "implementationClassName": "HybridFileHasher"
+      }
+    }
+  },
+  "ignorePaths": ["**/node_modules", "**/build"],
+  "gitAttributesGeneratedFlag": false
+}
