@@ -5,8 +5,8 @@ const { parseNpmPackResult } = require('../scripts/npm-pack-result.cjs');
 const name = 'react-native-nitro-xxhash';
 const tarball = {
   name,
-  version: '0.1.0',
-  filename: `${name}-0.1.0.tgz`,
+  version: '0.1.1',
+  filename: `${name}-0.1.1.tgz`,
   files: [{ path: 'package.json', mode: 0o644 }],
 };
 

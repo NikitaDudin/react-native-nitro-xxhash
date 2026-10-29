@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-xxhash",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Native XXH32, XXH64, XXH3-64 and XXH3-128 hashing for React Native, with seeded, streaming and local-file APIs.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

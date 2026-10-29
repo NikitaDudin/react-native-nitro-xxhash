@@ -4,6 +4,10 @@ Notable changes to `react-native-nitro-xxhash` are documented here.
 
 ## Unreleased
 
+### Fixed
+
+- Resolve Nitro 0.37.1's private worker-pool header during CocoaPods builds without application-owned header search paths.
+
 ## 0.1.0 - 2026-10-29
 
 ### Added

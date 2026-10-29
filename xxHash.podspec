@@ -25,6 +25,8 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES',
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
+    # ThreadPool.hpp is private in the required Nitro 0.37.1 dependency.
+    'HEADER_SEARCH_PATHS' => '$(inherited) "$(PODS_ROOT)/Headers/Private"',
   }
 
   load File.join(__dir__, 'nitrogen/generated/ios/xxHash+autolinking.rb')

@@ -106,7 +106,7 @@ npm run validate:ios-sources
 npm run validate:nitro-ios-compat
 ```
 
-Both default to deployment target 15.1; `IOS_DEPLOYMENT_TARGET` selects a higher target. The source check evaluates the podspec and compiles C++/Objective-C++ for arm64 device and Simulator. The strict exception-import regression requires Xcode 27 and compiles Nitro's actual Swift/C++ paths before and after the repair. These checks do not replace full application linking or runtime tests.
+Both default to deployment target 15.1; `IOS_DEPLOYMENT_TARGET` selects a higher target. The source check evaluates the podspec and compiles C++/Objective-C++ for arm64 device and Simulator. It keeps Nitro 0.37.1's private `ThreadPool.hpp` outside the general header map and verifies that removing the podspec's private header search path reproduces the missing-header failure. The strict exception-import regression requires Xcode 27 and compiles Nitro's actual Swift/C++ paths before and after the repair. These checks do not replace full application linking or runtime tests.
 
 Use `tests/runtime.ts` in a separate React Native host to check the public API. Install the packed package, apply its compatibility helper, and exercise cold import, first use, repeated calls, invalid input, native reload and failure recovery. Follow the [application lifecycle requirements](docs/compatibility.md#ios-app-lifecycle-with-xcode-27) when configuring an iOS host.
 
@@ -176,7 +176,7 @@ Authenticate with npm and publish the reviewed tarball explicitly:
 
 ```sh
 npm login
-npm publish ./react-native-nitro-xxhash-0.1.0.tgz --access public
+npm publish ./react-native-nitro-xxhash-0.1.1.tgz --access public
 ```
 
 Use the actual version's filename. Tag the reviewed release as `v<version>` and create the matching GitHub release; the podspec uses that tag. See the [npm publish documentation](https://docs.npmjs.com/cli/v11/commands/npm-publish/).

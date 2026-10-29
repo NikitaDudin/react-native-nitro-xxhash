@@ -18,17 +18,32 @@ if (!/^\d+\.\d+(?:\.\d+)?$/.test(deploymentTarget))
 function main() {
   if (!fs.existsSync(path.join(nitro, 'cpp')) || !fs.existsSync(reactNative))
     throw new Error('Run npm ci before checking iOS sources.');
-  run('pod', ['ipc', 'spec', path.join(ROOT, 'xxHash.podspec')], {
-    stdio: ['ignore', 'ignore', 'inherit'],
-  });
+  const podspec = JSON.parse(
+    run('pod', ['ipc', 'spec', path.join(ROOT, 'xxHash.podspec'), '--silent']).stdout,
+  );
   withTemporaryDirectory('nitro-xxhash-ios-', (directory) => {
     const include = path.join(directory, 'headers/NitroModules');
+    const podsRoot = path.join(directory, 'Pods');
+    const privateInclude = path.join(podsRoot, 'Headers/Private/NitroModules');
     fs.mkdirSync(include, { recursive: true });
+    fs.mkdirSync(privateInclude, { recursive: true });
     for (const base of [path.join(nitro, 'cpp'), path.join(nitro, 'ios')]) {
       for (const header of filesUnder(base, (file) => file.endsWith('.hpp'))) {
-        const target = path.join(include, path.basename(header));
+        // Keep this private header out of the broad syntax-check map. Otherwise
+        // the host fixture hides a missing search path in the actual podspec.
+        const parent = path.basename(header) === 'ThreadPool.hpp' ? privateInclude : include;
+        const target = path.join(parent, path.basename(header));
         if (!fs.existsSync(target)) fs.symlinkSync(header, target);
       }
+    }
+    const headerSearchPaths = podspec.pod_target_xcconfig?.HEADER_SEARCH_PATHS || '';
+    const dependencyIncludes = [];
+    for (const token of headerSearchPaths.match(/"[^"]*"|\S+/g) || []) {
+      const value = token.replace(/^"(.*)"$/, '$1');
+      if (value === '$(inherited)' || value === '${inherited}') continue;
+      const expanded = value.replace(/\$\(PODS_ROOT\)|\$\{PODS_ROOT\}/g, podsRoot);
+      if (expanded.includes('$')) throw new Error(`Unsupported header search path: ${value}`);
+      dependencyIncludes.push('-I', expanded);
     }
     const common = [
       '-std=c++20',
@@ -79,18 +94,33 @@ function main() {
       const sdkPath = run('xcrun', ['--sdk', sdk, '--show-sdk-path']).stdout.trim();
       const output = path.join(directory, sdk);
       fs.mkdirSync(output);
+      const compiler = [
+        '--sdk',
+        sdk,
+        'clang++',
+        '-target',
+        target,
+        '-isysroot',
+        sdkPath,
+        ...common,
+      ];
+      // Compile the real caller without podspec-owned paths as a negative
+      // control, so widening the synthetic include map cannot mask this bug.
+      const missingPrivateHeader = run(
+        'xcrun',
+        [...compiler, '-fsyntax-only', path.join(ROOT, 'cpp/FileHashExecutor.cpp')],
+        { expectedStatus: 1 },
+      );
+      if (!missingPrivateHeader.stderr.includes("'NitroModules/ThreadPool.hpp' file not found"))
+        throw new Error(
+          `Private ThreadPool header regression did not reproduce:\n${missingPrivateHeader.stderr}`,
+        );
       for (const source of sources) {
         run(
           'xcrun',
           [
-            '--sdk',
-            sdk,
-            'clang++',
-            '-target',
-            target,
-            '-isysroot',
-            sdkPath,
-            ...common,
+            ...compiler,
+            ...dependencyIncludes,
             '-c',
             source,
             '-o',

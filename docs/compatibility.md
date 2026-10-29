@@ -118,6 +118,8 @@ nodeLinker: node-modules
 
 The helper requires writable, unpacked Nitro sources. For PnP or read-only stores, use your package manager's dependency-patching workflow to create an editable Nitro 0.37.1 workspace, apply the helper with `--nitro-path`, review the changes and persist the patch. Do not modify a shared package cache in place. If an editable workspace cannot be created, use the shipped repair definitions with the package manager's native patch mechanism.
 
+If the application already maintains custom Nitro patches, merge these repair definitions into that patch while preserving the application's other fixes. Keep one patch owner; the helper intentionally rejects differing sources, so do not chain it after a custom patch.
+
 ## Xcode 27 below iOS 18
 
 Nitro 0.37.1's Swift/C++ exception conversion can import an iOS 18-only libc++ symbol under Xcode 27. The compatibility helper includes the required exception backport for older deployment targets. Raising or lowering the deployment target alone does not replace that repair. See the [upstream issue](https://github.com/margelo/nitro/issues/1652) and [fix](https://github.com/margelo/nitro/pull/1824).
