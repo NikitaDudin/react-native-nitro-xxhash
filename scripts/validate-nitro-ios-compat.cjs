@@ -19,7 +19,12 @@ function main() {
     throw new Error('This regression fixture requires Nitro 0.37.1.');
   withTemporaryDirectory('nitro-ios-compat-', (root) => {
     const nitro = path.join(root, 'nitro');
-    fs.cpSync(source, nitro, { recursive: true, dereference: true });
+    fs.cpSync(source, nitro, {
+      recursive: true,
+      dereference: true,
+      // Keep Node 24's unfiltered copy from preserving writable source symlinks.
+      filter: () => true,
+    });
     // Reconstruct only known upstream snippets in the disposable copy, including
     // when a maintainer has already opted into the local backport.
     for (const target of manifest.targets) {

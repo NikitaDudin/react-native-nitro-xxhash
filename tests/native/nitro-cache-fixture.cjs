@@ -17,6 +17,9 @@ function createNitroCacheFixture(directory, sourceDirectory) {
   fs.cpSync(path.join(installed, 'cpp'), path.join(directory, 'cpp'), {
     recursive: true,
     dereference: true,
+    // Node 24's unfiltered copy can preserve nested symlinks despite dereference.
+    // A filter selects the copy path that gives this fixture its own file bytes.
+    filter: () => true,
   });
   fs.mkdirSync(path.join(directory, 'ios/utils'), { recursive: true });
   for (const relativePath of new Set(definitions.targets.map((target) => target.path))) {

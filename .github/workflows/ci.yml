@@ -3,16 +3,29 @@ name: Validate package
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'website/**'
+      - '**/*.md'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'website/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     name: TypeScript, generated bindings and native core (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -70,21 +83,23 @@ jobs:
       - name: Verify Expo prebuild from the packed package
         run: npm run validate:expo -- --platform ${{ runner.os == 'macOS' && 'ios' || 'android' }}
       - run: npm pack
+      - name: Use the minimum supported Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.13.0'
+      - run: npm run test:js && npm run test:compat && npm run test:expo
       - uses: actions/upload-artifact@v7.0.2
         if: runner.os == 'Linux'
         with:
           name: npm-package
           path: '*.tgz'
           if-no-files-found: error
-      - name: Use the minimum supported Node.js
-        uses: actions/setup-node@v7.1.0
-        with:
-          node-version: '22.13.0'
-      - run: npm run test:js && npm run test:compat && npm run test:expo
+          retention-days: 7
 
   android:
     name: Android host and AAR (${{ matrix.profile }})
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +109,7 @@ jobs:
             react: '19.3.0'
             gradle: '9.6.0'
             gradle-sha256: bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01
-            compile-sdk: '37'
+            sdk-platform: '37.0'
             build-tools: '37.0.0'
             ndk: '30.0.16248370'
     steps:
@@ -109,6 +124,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Set up Android SDK command-line tools
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: ''
+          log-accepted-android-sdk-licenses: false
       - run: npm ci
       - name: Install isolated host dependencies
         run: |
@@ -118,7 +138,7 @@ jobs:
             react-native-nitro-modules@0.37.1
       - name: Install the host Android toolchain
         run: |
-          sdkmanager "platforms;android-${{ matrix.compile-sdk }}" \
+          sdkmanager "platforms;android-${{ matrix.sdk-platform }}" \
             "build-tools;${{ matrix.build-tools }}" "ndk;${{ matrix.ndk }}" "cmake;3.22.1"
           curl --fail --location --retry 3 \
             "https://services.gradle.org/distributions/gradle-${{ matrix.gradle }}-bin.zip" \
@@ -132,15 +152,17 @@ jobs:
             --dependencies-root "$RUNNER_TEMP/native-dependencies" \
             --output "$RUNNER_TEMP/android-${{ matrix.profile }}"
       - uses: actions/upload-artifact@v7.0.2
-        if: always()
+        if: ${{ !cancelled() }}
         with:
           name: android-${{ matrix.profile }}
           path: ${{ runner.temp }}/android-${{ matrix.profile }}
           if-no-files-found: warn
+          retention-days: 7
 
   ios-sources:
     name: iOS 15.1 sources (RN 0.88)
     runs-on: macos-latest
+    timeout-minutes: 45
     env:
       IOS_DEPLOYMENT_TARGET: '15.1'
     steps:

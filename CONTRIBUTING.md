@@ -120,6 +120,8 @@ Maintain `compat/` against exact Nitro source contents. Preserve version/source 
 
 CI checks formatting, lint, generated bindings, API/core tests and package contents. It also runs the Android host fixture and iOS source/type checks against RN 0.88, and repeats JS/GC, compatibility-helper and Expo plugin tests on the minimum Node version. The strict exception-import check runs when Xcode 27 or newer is selected; older toolchains still run source checks. Full app builds and device tests remain separate contributor checks.
 
+Package validation runs on library changes in pull requests and pushes to `main`, or manually through **Actions → Validate package → Run workflow**. Documentation-only changes use the documentation workflow, which checks formatting, website lint and API examples before building the site. Path-filtered workflows do not report successful checks on skipped pull requests; account for this when configuring required branch checks. New commits cancel older runs for the same workflow/ref. Validation artifacts expire after 7 days; the Pages deployment artifact expires after 1 day. Job timeouts bound stalled checks without publishing a package.
+
 ## Documentation website
 
 The Docusaurus site is in `website/`, with authored content in `docs/`. Install its dependencies separately from the native package:

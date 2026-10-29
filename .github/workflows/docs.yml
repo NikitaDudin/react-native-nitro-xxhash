@@ -8,8 +8,7 @@ on:
       - 'website/**'
       - 'src/**'
       - 'index.ts'
-      - 'README.md'
-      - 'CONTRIBUTING.md'
+      - '**/*.md'
       - 'package*.json'
       - 'tsconfig*.json'
       - 'scripts/check-docs.cjs'
@@ -21,8 +20,7 @@ on:
       - 'website/**'
       - 'src/**'
       - 'index.ts'
-      - 'README.md'
-      - 'CONTRIBUTING.md'
+      - '**/*.md'
       - 'package*.json'
       - 'tsconfig*.json'
       - 'scripts/check-docs.cjs'
@@ -41,6 +39,7 @@ jobs:
   build:
     name: Build documentation and check API examples
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -54,6 +53,8 @@ jobs:
             website/package-lock.json
       - run: npm ci --ignore-scripts
       - run: npm ci --prefix website --ignore-scripts
+      - run: npx prettier --check '**/*.md' docs website .github/workflows/docs.yml
+      - run: npx eslint website --max-warnings=0
       - run: npm run build
       - run: npm run docs:check
       - run: npm run docs:build
@@ -61,12 +62,14 @@ jobs:
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: website/build
+          retention-days: 1
 
   deploy:
     name: Publish GitHub Pages
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       pages: write
       id-token: write
