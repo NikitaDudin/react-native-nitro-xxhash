@@ -4,7 +4,7 @@ Notable changes to `react-native-nitro-xxhash` are documented here.
 
 ## Unreleased
 
-The initial `0.1.0` release is in development. No versions have been published.
+## 0.1.0 - 2026-10-29
 
 ### Added
 
