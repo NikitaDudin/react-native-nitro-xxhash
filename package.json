@@ -21,7 +21,7 @@
     "android/src",
     "nitrogen/generated",
     "nitro.json",
-    "NitroFileHash.podspec",
+    "xxHash.podspec",
     "react-native.config.js",
     "README.md",
     "LICENSE",
@@ -104,11 +104,11 @@
     "typescript-eslint": "8.72.0"
   },
   "codegenConfig": {
-    "name": "NitroFileHashLoaderSpec",
+    "name": "XXHashLoaderSpec",
     "type": "modules",
     "jsSrcsDir": "native",
     "android": {
-      "javaPackageName": "com.margelo.nitro.filehash"
+      "javaPackageName": "com.margelo.nitro.xxhash"
     }
   },
   "react-native": "./index.ts",

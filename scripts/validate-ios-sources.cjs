@@ -18,7 +18,7 @@ if (!/^\d+\.\d+(?:\.\d+)?$/.test(deploymentTarget))
 function main() {
   if (!fs.existsSync(path.join(nitro, 'cpp')) || !fs.existsSync(reactNative))
     throw new Error('Run npm ci before checking iOS sources.');
-  run('pod', ['ipc', 'spec', path.join(ROOT, 'NitroFileHash.podspec')], {
+  run('pod', ['ipc', 'spec', path.join(ROOT, 'xxHash.podspec')], {
     stdio: ['ignore', 'ignore', 'inherit'],
   });
   withTemporaryDirectory('nitro-xxhash-ios-', (directory) => {

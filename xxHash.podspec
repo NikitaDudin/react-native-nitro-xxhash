@@ -3,7 +3,7 @@ require 'json'
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 
 Pod::Spec.new do |s|
-  s.name             = 'NitroFileHash'
+  s.name             = 'xxHash'
   s.version          = package['version']
   s.summary          = package['description']
   s.description      = package['description']
@@ -27,6 +27,6 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
   }
 
-  load File.join(__dir__, 'nitrogen/generated/ios/NitroFileHash+autolinking.rb')
+  load File.join(__dir__, 'nitrogen/generated/ios/xxHash+autolinking.rb')
   add_nitrogen_files(s)
 end

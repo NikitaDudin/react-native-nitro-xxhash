@@ -40,7 +40,7 @@ function fixture(stats) {
     const localRequire = (request) => {
       if (request === 'react-native-nitro-modules')
         return { NitroModules: { createHybridObject: () => native } };
-      if (request.endsWith('/NativeNitroFileHashLoader')) return { default() {} };
+      if (request.endsWith('/NativeXXHashLoader')) return { default() {} };
       assert.ok(request.startsWith('.'), `Unexpected production dependency: ${request}`);
       return load(path.resolve(path.dirname(filename), `${request}.js`));
     };

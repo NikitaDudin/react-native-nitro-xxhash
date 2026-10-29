@@ -1,15 +1,15 @@
-package com.margelo.nitro.filehash;
+package com.margelo.nitro.xxhash;
 
 import androidx.annotation.NonNull;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.annotations.ReactModule;
 
-@ReactModule(name = NitroFileHashLoaderModule.NAME)
-public final class NitroFileHashLoaderModule extends NativeNitroFileHashLoaderSpec {
-  public static final String NAME = "NativeNitroFileHashLoader";
+@ReactModule(name = XXHashLoaderModule.NAME)
+public final class XXHashLoaderModule extends NativeXXHashLoaderSpec {
+  public static final String NAME = "NativeXXHashLoader";
   private static boolean didLoad = false;
 
-  public NitroFileHashLoaderModule(ReactApplicationContext reactContext) { super(reactContext); }
+  public XXHashLoaderModule(ReactApplicationContext reactContext) { super(reactContext); }
 
   @NonNull
   @Override
@@ -20,9 +20,9 @@ public final class NitroFileHashLoaderModule extends NativeNitroFileHashLoaderSp
   @Override
   public boolean load() {
     // Share the load lock across React contexts; Nitro registration belongs to the process.
-    synchronized (NitroFileHashLoaderModule.class) {
+    synchronized (XXHashLoaderModule.class) {
       if (!didLoad) {
-        System.loadLibrary("NitroFileHash");
+        System.loadLibrary("xxHash");
         didLoad = true;
       }
       return true;

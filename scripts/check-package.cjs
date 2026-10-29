@@ -54,8 +54,8 @@ const required = [
   pkg.main.replace(/^\.\//, ''),
   pkg.types.replace(/^\.\//, ''),
   pkg['react-native'].replace(/^\.\//, ''),
-  'lib/native/NativeNitroFileHashLoader.js',
-  'native/NativeNitroFileHashLoader.ts',
+  'lib/native/NativeXXHashLoader.js',
+  'native/NativeXXHashLoader.ts',
   'src/specs/FileHasher.nitro.ts',
   'src/specs/HashState.nitro.ts',
   'src/specs/HashFileTask.nitro.ts',
@@ -67,21 +67,21 @@ const required = [
   'cpp/HybridHashState.cpp',
   'cpp/HybridHashFileTask.cpp',
   'nitro.json',
-  'NitroFileHash.podspec',
+  'xxHash.podspec',
   'react-native.config.js',
   'android/build.gradle',
   'android/CMakeLists.txt',
   'android/src/main/AndroidManifest.xml',
   'android/src/main/cpp/JNIOnLoad.cpp',
-  'android/src/main/java/com/margelo/nitro/filehash/NitroFileHashPackage.java',
-  'android/src/main/java/com/margelo/nitro/filehash/NitroFileHashLoaderModule.java',
+  'android/src/main/java/com/margelo/nitro/xxhash/XXHashPackage.java',
+  'android/src/main/java/com/margelo/nitro/xxhash/XXHashLoaderModule.java',
   'nitrogen/generated/shared/c++/HybridFileHasherSpec.hpp',
   'nitrogen/generated/shared/c++/HybridHashStateSpec.hpp',
   'nitrogen/generated/shared/c++/HybridHashFileTaskSpec.hpp',
-  'nitrogen/generated/ios/NitroFileHash+autolinking.rb',
-  'nitrogen/generated/ios/NitroFileHashAutolinking.mm',
-  'nitrogen/generated/android/NitroFileHash+autolinking.cmake',
-  'nitrogen/generated/android/NitroFileHashOnLoad.cpp',
+  'nitrogen/generated/ios/xxHash+autolinking.rb',
+  'nitrogen/generated/ios/xxHashAutolinking.mm',
+  'nitrogen/generated/android/xxHash+autolinking.cmake',
+  'nitrogen/generated/android/xxHashOnLoad.cpp',
 ];
 for (const path of required) {
   assert(paths.has(path), `Missing published file: ${path}`);
@@ -104,7 +104,7 @@ for (const path of paths) {
     `Removed alias implementation must not be published: ${path}`,
   );
 }
-const podspec = readFileSync(resolve(root, 'NitroFileHash.podspec'), 'utf8');
+const podspec = readFileSync(resolve(root, 'xxHash.podspec'), 'utf8');
 assert(podspec.includes(":ios => '15.1'"), 'Keep the supported iOS baseline at 15.1');
 assert(
   readFileSync(resolve(root, 'android/build.gradle'), 'utf8').includes('Math.max(24,'),

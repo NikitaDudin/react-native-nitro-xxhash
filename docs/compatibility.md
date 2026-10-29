@@ -24,7 +24,7 @@ platform :ios, min_ios_version_supported
 
 The library's podspec declares 15.1; React Native and other dependencies may require a higher application target. Rebuild the native app after installation. Expo requires a development build; Expo Go, web and remote JavaScript debugging are unsupported.
 
-Do not link this package alongside another copy of the native `NitroFileHash` module: their native library and HybridObject registration identities collide.
+Do not link this package alongside another copy of the native `xxHash` module: their native library and HybridObject registration identities collide.
 
 ### iOS app lifecycle with Xcode 27
 

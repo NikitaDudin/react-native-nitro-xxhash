@@ -78,7 +78,7 @@ function fixture({ failCreate, failUpdate, failDigest, failDispose } = {}) {
           },
         };
       }
-      if (request.endsWith('/NativeNitroFileHashLoader')) {
+      if (request.endsWith('/NativeXXHashLoader')) {
         return { default: () => events.push('load') };
       }
       if (!request.startsWith('.')) throw new Error(`Unexpected production dependency: ${request}`);

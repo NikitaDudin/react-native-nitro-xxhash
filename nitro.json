@@ -2,11 +2,11 @@
   "$schema": "https://nitro.margelo.com/nitro.schema.json",
   "cxxNamespace": ["xxhash"],
   "ios": {
-    "iosModuleName": "NitroFileHash"
+    "iosModuleName": "xxHash"
   },
   "android": {
-    "androidNamespace": ["filehash"],
-    "androidCxxLibName": "NitroFileHash"
+    "androidNamespace": ["xxhash"],
+    "androidCxxLibName": "xxHash"
   },
   "autolinking": {
     "FileHasher": {

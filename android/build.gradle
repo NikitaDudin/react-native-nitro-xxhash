@@ -3,7 +3,7 @@ plugins {
   id 'com.facebook.react'
 }
 
-group = 'com.margelo.nitro.filehash'
+group = 'com.margelo.nitro.xxhash'
 version = new groovy.json.JsonSlurper().parse(file('../package.json')).version
 
 def reactNativeArchitectures() {
@@ -15,6 +15,8 @@ def safeExtGet(prop, fallback) {
   rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
+apply from: '../nitrogen/generated/android/xxHash+autolinking.gradle'
+
 android {
   if (rootProject.hasProperty("ndkPath")) {
     ndkPath = rootProject.ext.ndkPath
@@ -25,7 +27,7 @@ android {
     ndkVersion = "27.1.12297006"
   }
 
-  namespace = "com.margelo.nitro.filehash"
+  namespace = "com.margelo.nitro.xxhash"
   compileSdk = safeExtGet("compileSdkVersion", 37)
 
   defaultConfig {

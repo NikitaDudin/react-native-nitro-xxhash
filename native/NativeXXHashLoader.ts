@@ -7,7 +7,7 @@ export interface Spec extends TurboModule {
 
 function loadNativeLibrary(): void {
   if (Platform.OS === 'android') {
-    const loader = TurboModuleRegistry.getEnforcing<Spec>('NativeNitroFileHashLoader');
+    const loader = TurboModuleRegistry.getEnforcing<Spec>('NativeXXHashLoader');
     loader.load();
   }
 }

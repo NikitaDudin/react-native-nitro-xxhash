@@ -102,7 +102,7 @@ function fixture({
           },
         };
       }
-      if (request.endsWith('/NativeNitroFileHashLoader')) {
+      if (request.endsWith('/NativeXXHashLoader')) {
         events.push('import:loader');
         return {
           default() {

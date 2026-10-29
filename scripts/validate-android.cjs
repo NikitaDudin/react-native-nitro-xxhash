@@ -173,7 +173,7 @@ tasks.register('verifyXxHashAar') {
     new java.util.zip.ZipFile(aar).withCloseable { archive ->
       def entries = Collections.list(archive.entries()).findAll { !it.directory }.collect { it.name }
       def actual = entries.findAll { it.startsWith('jni/') && it.endsWith('.so') }.toSet()
-      def expected = ${JSON.stringify(architectures)}.collect { 'jni/' + it + '/libNitroFileHash.so' }.toSet()
+      def expected = ${JSON.stringify(architectures)}.collect { 'jni/' + it + '/libxxHash.so' }.toSet()
       if (actual != expected) {
         throw new GradleException("Unexpected xxhash AAR native libraries: " + actual.sort())
       }
@@ -189,8 +189,8 @@ tasks.register('verifyXxHashAar') {
         }
       }
       def requiredClasses = [
-        'NitroFileHashPackage', 'NitroFileHashLoaderModule', 'NativeNitroFileHashLoaderSpec'
-      ].collect { 'com/margelo/nitro/filehash/' + it + '.class' }
+        'XXHashPackage', 'XXHashLoaderModule', 'NativeXXHashLoaderSpec'
+      ].collect { 'com/margelo/nitro/xxhash/' + it + '.class' }
       if (!classNames.containsAll(requiredClasses)) {
         throw new GradleException('Missing xxhash AAR classes: ' + (requiredClasses - classNames))
       }
@@ -262,14 +262,14 @@ write(
   `package com.nitroxxhash.validation;
 
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.margelo.nitro.filehash.NativeNitroFileHashLoaderSpec;
-import com.margelo.nitro.filehash.NitroFileHashLoaderModule;
-import com.margelo.nitro.filehash.NitroFileHashPackage;
+import com.margelo.nitro.xxhash.NativeXXHashLoaderSpec;
+import com.margelo.nitro.xxhash.XXHashLoaderModule;
+import com.margelo.nitro.xxhash.XXHashPackage;
 
 public final class ConsumerProbe {
-  public static NitroFileHashPackage createPackage() { return new NitroFileHashPackage(); }
-  public static NativeNitroFileHashLoaderSpec createLoader(ReactApplicationContext context) {
-    return new NitroFileHashLoaderModule(context);
+  public static XXHashPackage createPackage() { return new XXHashPackage(); }
+  public static NativeXXHashLoaderSpec createLoader(ReactApplicationContext context) {
+    return new XXHashLoaderModule(context);
   }
 }
 `,

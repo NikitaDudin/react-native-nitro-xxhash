@@ -1,4 +1,4 @@
-package com.margelo.nitro.filehash;
+package com.margelo.nitro.xxhash;
 
 import androidx.annotation.Nullable;
 import com.facebook.react.BaseReactPackage;
@@ -9,12 +9,12 @@ import com.facebook.react.module.model.ReactModuleInfoProvider;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class NitroFileHashPackage extends BaseReactPackage {
+public final class XXHashPackage extends BaseReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
-    if (NitroFileHashLoaderModule.NAME.equals(name)) {
-      return new NitroFileHashLoaderModule(reactContext);
+    if (XXHashLoaderModule.NAME.equals(name)) {
+      return new XXHashLoaderModule(reactContext);
     }
     return null;
   }
@@ -23,9 +23,9 @@ public final class NitroFileHashPackage extends BaseReactPackage {
   public ReactModuleInfoProvider getReactModuleInfoProvider() {
     return () -> {
       Map<String, ReactModuleInfo> modules = new HashMap<>();
-      modules.put(NitroFileHashLoaderModule.NAME,
-                  new ReactModuleInfo(NitroFileHashLoaderModule.NAME, NitroFileHashLoaderModule.class.getName(), false,
-                                      false, false, true));
+      modules.put(
+          XXHashLoaderModule.NAME,
+          new ReactModuleInfo(XXHashLoaderModule.NAME, XXHashLoaderModule.class.getName(), false, false, false, true));
       return modules;
     };
   }

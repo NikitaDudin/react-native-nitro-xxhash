@@ -29,15 +29,15 @@ test('real Java loader stays lazy, retries failures and synchronizes concurrent 
         'package com.facebook.react.bridge;\npublic class ReactApplicationContext {}',
       'com/facebook/react/module/annotations/ReactModule.java':
         'package com.facebook.react.module.annotations;\npublic @interface ReactModule { String name(); }',
-      'com/margelo/nitro/filehash/NativeNitroFileHashLoaderSpec.java': `package com.margelo.nitro.filehash;
+      'com/margelo/nitro/xxhash/NativeXXHashLoaderSpec.java': `package com.margelo.nitro.xxhash;
 import com.facebook.react.bridge.ReactApplicationContext;
-public abstract class NativeNitroFileHashLoaderSpec {
-  public NativeNitroFileHashLoaderSpec(ReactApplicationContext context) {}
+public abstract class NativeXXHashLoaderSpec {
+  public NativeXXHashLoaderSpec(ReactApplicationContext context) {}
   public abstract String getName();
   public abstract boolean load();
 }`,
       'LoaderContract.java': String.raw`import com.facebook.react.bridge.ReactApplicationContext;
-import com.margelo.nitro.filehash.NitroFileHashLoaderModule;
+import com.margelo.nitro.xxhash.XXHashLoaderModule;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,14 +50,14 @@ import java.util.concurrent.Future;
 
 public class LoaderContract {
   public static void main(String[] compilerCommand) throws Exception {
-    Field didLoad = NitroFileHashLoaderModule.class.getDeclaredField("didLoad");
+    Field didLoad = XXHashLoaderModule.class.getDeclaredField("didLoad");
     didLoad.setAccessible(true);
     Path log = Path.of(System.getenv("NITRO_XXHASH_LOADER_LOG"));
     if (didLoad.getBoolean(null) || Files.exists(log)) {
       throw new AssertionError("Class initialization loaded the native library");
     }
-    NitroFileHashLoaderModule module = new NitroFileHashLoaderModule(new ReactApplicationContext());
-    if (!module.getName().equals("NativeNitroFileHashLoader")) {
+    XXHashLoaderModule module = new XXHashLoaderModule(new ReactApplicationContext());
+    if (!module.getName().equals("NativeXXHashLoader")) {
       throw new AssertionError("Unexpected TurboModule name");
     }
     try {
@@ -72,7 +72,7 @@ public class LoaderContract {
     try {
       List<Callable<Boolean>> calls = new ArrayList<>();
       for (int i = 0; i < 64; i++) {
-        calls.add(() -> new NitroFileHashLoaderModule(new ReactApplicationContext()).load());
+        calls.add(() -> new XXHashLoaderModule(new ReactApplicationContext()).load());
       }
       for (Future<Boolean> result : workers.invokeAll(calls)) {
         if (!result.get()) throw new AssertionError("Successful load returned false");
@@ -98,7 +98,7 @@ public class LoaderContract {
     }
     const loader = path.join(
       ROOT,
-      'android/src/main/java/com/margelo/nitro/filehash/NitroFileHashLoaderModule.java',
+      'android/src/main/java/com/margelo/nitro/xxhash/XXHashLoaderModule.java',
     );
     const classes = path.join(directory, 'classes');
     run(javac, ['-d', classes, ...javaSources, loader], { stdio: 'inherit' });
@@ -123,10 +123,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 `,
     );
     const host = process.platform === 'darwin' ? 'darwin' : 'linux';
-    const library = path.join(
-      directory,
-      host === 'darwin' ? 'libNitroFileHash.dylib' : 'libNitroFileHash.so',
-    );
+    const library = path.join(directory, host === 'darwin' ? 'libxxHash.dylib' : 'libxxHash.so');
     const command = [
       compiler,
       '-shared',
