@@ -23,7 +23,7 @@ function snapshot(directory) {
   return targetPaths.map((relative) => fs.readFileSync(path.join(directory, relative), 'utf8'));
 }
 
-for (const linked of ['cpp/utils/WeakReference.hpp', 'cpp/utils', 'cpp']) {
+for (const linked of ['cpp/core/utils/WeakReference.hpp', 'cpp/core/utils', 'cpp/core', 'cpp']) {
   test(`Nitro cache fixtures own copied contents and preserve a source symlink at ${linked}`, () => {
     withTemporaryDirectory('nitro-xxhash-fixture-links-', (directory) => {
       const source = path.join(directory, 'source');
@@ -40,7 +40,7 @@ for (const linked of ['cpp/utils/WeakReference.hpp', 'cpp/utils', 'cpp']) {
 
       assert.deepEqual(snapshot(source), before, 'Source SDK bytes must remain unchanged');
       assert(fs.lstatSync(link).isSymbolicLink(), 'Source SDK links must remain unchanged');
-      for (const relative of ['cpp', 'cpp/utils', ...targetPaths]) {
+      for (const relative of ['cpp', 'cpp/core', 'cpp/core/utils', ...targetPaths]) {
         const copied = path.join(fixture, relative);
         assert(!fs.lstatSync(copied).isSymbolicLink(), `Fixture must own ${relative}`);
         assert.notEqual(fs.realpathSync(copied), fs.realpathSync(path.join(source, relative)));

@@ -28,8 +28,6 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES',
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
-    # ThreadPool.hpp is private in the required Nitro 0.37.1 dependency.
-    'HEADER_SEARCH_PATHS' => '$(inherited) "$(PODS_ROOT)/Headers/Private"',
     'XXHASH_OPTIMIZE_DEBUG' => optimize_debug,
     'XXHASH_DEBUG_KERNEL_FLAGS' => '$(XXHASH_DEBUG_KERNEL_FLAGS_$(CONFIGURATION)_$(XXHASH_OPTIMIZE_DEBUG))',
     'XXHASH_DEBUG_KERNEL_FLAGS_Debug_YES' => '-O2',

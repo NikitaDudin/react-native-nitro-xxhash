@@ -2,13 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {
-  ROOT,
-  directoriesUnder,
-  filesUnder,
-  run,
-  withTemporaryDirectory,
-} = require('./native-test-utils.cjs');
+const { ROOT, directoriesUnder, run, withTemporaryDirectory } = require('./native-test-utils.cjs');
 
 const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules');
 const reactNative = path.join(ROOT, 'node_modules/react-native');
@@ -35,6 +29,10 @@ function validatePodspecSourceLayout(podspec) {
     '$(XXHASH_DEBUG_KERNEL_FLAGS) $(XXHASH_RELEASE_KERNEL_FLAGS)',
   );
   const settings = podspec.pod_target_xcconfig;
+  assert(
+    !String(settings?.HEADER_SEARCH_PATHS || '').includes('Headers/Private'),
+    'Use Nitro public headers instead of private header search paths',
+  );
   for (const configuration of ['Debug', 'Release']) {
     const mode = configuration.toUpperCase();
     const prefix = `XXHASH_${mode}_KERNEL_FLAGS`;
@@ -60,27 +58,25 @@ function main() {
   validatePodspecSourceLayout(podspec);
   withTemporaryDirectory('nitro-xxhash-ios-', (directory) => {
     const include = path.join(directory, 'headers/NitroModules');
-    const podsRoot = path.join(directory, 'Pods');
-    const privateInclude = path.join(podsRoot, 'Headers/Private/NitroModules');
     fs.mkdirSync(include, { recursive: true });
-    fs.mkdirSync(privateInclude, { recursive: true });
-    for (const base of [path.join(nitro, 'cpp'), path.join(nitro, 'ios')]) {
-      for (const header of filesUnder(base, (file) => file.endsWith('.hpp'))) {
-        // Keep this private header out of the broad syntax-check map. Otherwise
-        // the host fixture hides a missing search path in the actual podspec.
-        const parent = path.basename(header) === 'ThreadPool.hpp' ? privateInclude : include;
-        const target = path.join(parent, path.basename(header));
-        if (!fs.existsSync(target)) fs.symlinkSync(header, target);
-      }
-    }
-    const headerSearchPaths = podspec.pod_target_xcconfig?.HEADER_SEARCH_PATHS || '';
-    const dependencyIncludes = [];
-    for (const token of headerSearchPaths.match(/"[^"]*"|\S+/g) || []) {
-      const value = token.replace(/^"(.*)"$/, '$1');
-      if (value === '$(inherited)' || value === '${inherited}') continue;
-      const expanded = value.replace(/\$\(PODS_ROOT\)|\$\{PODS_ROOT\}/g, podsRoot);
-      if (expanded.includes('$')) throw new Error(`Unsupported header search path: ${value}`);
-      dependencyIncludes.push('-I', expanded);
+    // Load the dependency's actual podspec with the same RN helpers as a host
+    // Podfile. Only its declared public headers may satisfy prefixed imports.
+    const dependencySpec = path.join(directory, 'NitroModules.podspec');
+    fs.writeFileSync(
+      dependencySpec,
+      `require ${JSON.stringify(path.join(reactNative, 'scripts/react_native_pods.rb'))}\n` +
+        `Pod::Specification.from_file(${JSON.stringify(path.join(nitro, 'NitroModules.podspec'))})\n`,
+    );
+    const nitroPodspec = JSON.parse(run('pod', ['ipc', 'spec', dependencySpec, '--silent']).stdout);
+    assert.equal(nitroPodspec.version, '0.37.2');
+    const publicHeaders = nitroPodspec.public_header_files;
+    assert(Array.isArray(publicHeaders));
+    assert(publicHeaders.includes('cpp/core/threading/ThreadPool.hpp'));
+    for (const header of publicHeaders) {
+      assert(!/[{}*?]/u.test(header), `Resolve new Nitro header glob explicitly: ${header}`);
+      const target = path.join(include, path.basename(header));
+      assert(!fs.existsSync(target), `Duplicate Nitro public header: ${header}`);
+      fs.symlinkSync(path.join(nitro, header), target);
     }
     const common = [
       '-std=c++20',
@@ -99,7 +95,7 @@ function main() {
       '-I',
       path.join(reactNative, 'ReactCommon/jsi'),
     ];
-    for (const base of [path.join(nitro, 'cpp'), path.join(nitro, 'ios')]) {
+    for (const base of [path.join(nitro, 'cpp'), path.join(nitro, 'apple')]) {
       for (const candidate of directoriesUnder(base)) common.push('-I', candidate);
     }
     const sources = [];
@@ -141,28 +137,24 @@ function main() {
         sdkPath,
         ...common,
       ];
-      // Compile the real caller without podspec-owned paths as a negative
-      // control, so widening the synthetic include map cannot mask this bug.
-      const missingPrivateHeader = run(
+      // A missing public declaration must break the real prefixed import. This
+      // prevents a broad synthetic map from hiding future dependency regressions.
+      const threadPoolHeader = path.join(include, 'ThreadPool.hpp');
+      fs.unlinkSync(threadPoolHeader);
+      const missingPublicHeader = run(
         'xcrun',
         [...compiler, '-fsyntax-only', path.join(ROOT, 'cpp/FileHashExecutor.cpp')],
         { expectedStatus: 1 },
       );
-      if (!missingPrivateHeader.stderr.includes("'NitroModules/ThreadPool.hpp' file not found"))
+      if (!missingPublicHeader.stderr.includes("'NitroModules/ThreadPool.hpp' file not found"))
         throw new Error(
-          `Private ThreadPool header regression did not reproduce:\n${missingPrivateHeader.stderr}`,
+          `Public ThreadPool header regression did not reproduce:\n${missingPublicHeader.stderr}`,
         );
+      fs.symlinkSync(path.join(nitro, 'cpp/core/threading/ThreadPool.hpp'), threadPoolHeader);
       for (const source of sources) {
         run(
           'xcrun',
-          [
-            ...compiler,
-            ...dependencyIncludes,
-            '-c',
-            source,
-            '-o',
-            path.join(output, `${path.basename(source)}.o`),
-          ],
+          [...compiler, '-c', source, '-o', path.join(output, `${path.basename(source)}.o`)],
           { stdio: 'inherit' },
         );
       }

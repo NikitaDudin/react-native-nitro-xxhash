@@ -69,6 +69,9 @@ const repair = spawnSync(
 if (repair.error || repair.status !== 0)
   throw repair.error || new Error('Could not repair the isolated Nitro copy.');
 const packageScopes = [
+  'package.json',
+  'nitro.json',
+  'native',
   'cpp',
   'android/build.gradle',
   'android/CMakeLists.txt',
@@ -77,10 +80,14 @@ const packageScopes = [
 ];
 const nitroScopes = [
   'cpp',
-  'ios',
+  'apple',
+  'android/core',
   'android/src',
+  'android/CMakeLists.txt',
   'android/build.gradle',
+  'android/fix-prefab.gradle',
   'android/gradle.properties',
+  'src',
   'package.json',
 ];
 const sources = {
@@ -299,7 +306,13 @@ const environment = {
 };
 const cachedDependencies = path.join(os.homedir(), '.gradle/caches');
 if (!environment.GRADLE_RO_DEP_CACHE && fs.existsSync(cachedDependencies)) {
-  environment.GRADLE_RO_DEP_CACHE = cachedDependencies;
+  const writableDependencies = path.join(environment.GRADLE_USER_HOME, 'caches');
+  // Gradle cannot open one dependency cache with both read-only and writable locks.
+  if (
+    !fs.existsSync(writableDependencies) ||
+    fs.realpathSync(writableDependencies) !== fs.realpathSync(cachedDependencies)
+  )
+    environment.GRADLE_RO_DEP_CACHE = cachedDependencies;
 }
 console.log(`Building isolated Android fixture (${profile.name}): ${fixture}`);
 const runs = [];

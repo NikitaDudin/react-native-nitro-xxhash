@@ -16,6 +16,5 @@
       }
     }
   },
-  "ignorePaths": ["**/node_modules", "**/build"],
-  "gitAttributesGeneratedFlag": false
+  "ignorePaths": ["**/node_modules", "**/build"]
 }

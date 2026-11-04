@@ -10,7 +10,7 @@ const {
 
 test('dedicated file workers remain independent of the shared Nitro pool', () => {
   withTemporaryDirectory('nitro-xxhash-file-executor-', (work) => {
-    const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp');
+    const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp/core');
     const includes = nitroHeaderMap(nitro, path.join(work, 'NitroModules'));
     for (const sanitizer of [[], ['-fsanitize=address,undefined', '-fno-sanitize-recover=all']]) {
       const binary = path.join(work, sanitizer.length ? 'sanitized' : 'release');
@@ -19,7 +19,7 @@ test('dedicated file workers remain independent of the shared Nitro pool', () =>
         '-O2',
         '-DNDEBUG',
         '-pthread',
-        // Nitro 0.37.1's TypeInfo source relies on a libc++ transitive include.
+        // Nitro 0.37.2's TypeInfo source relies on a libc++ transitive include.
         '-include',
         'unordered_map',
         ...sanitizer,

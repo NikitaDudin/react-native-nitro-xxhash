@@ -137,7 +137,7 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/native-dependencies" \
             --ignore-scripts --no-audit --no-fund --save-exact \
             react-native@${{ matrix.react-native }} react@${{ matrix.react }} \
-            react-native-nitro-modules@0.37.1
+            react-native-nitro-modules@0.37.2
       - name: Install the host Android toolchain
         run: |
           sdkmanager "platforms;android-${{ matrix.sdk-platform }}" \
@@ -180,7 +180,7 @@ jobs:
       - run: npm run typecheck:runtime
       - run: npm run build && npm run test:types
       - run: npm run validate:ios-sources
-      - name: Reproduce the Xcode 27 exception backport regression when available
+      - name: Verify upstream Xcode 27 exception interoperability when available
         run: |
           xcode_major=$(xcodebuild -version | awk '/^Xcode / {split($2, parts, "."); print parts[1]}')
           if [ "$xcode_major" -ge 27 ]; then

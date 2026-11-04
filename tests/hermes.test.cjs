@@ -52,7 +52,7 @@ test('actual Hermes and Nitro bindings preserve binary, clone, format and async 
   );
   withTemporaryDirectory('nitro-xxhash-hermes-', (work) => {
     const installed = path.join(ROOT, 'node_modules/react-native-nitro-modules');
-    for (const part of ['cpp', 'ios/platform', 'ios/threading']) {
+    for (const part of ['cpp/core', 'apple/core/platform', 'apple/core/threading']) {
       fs.cpSync(path.join(installed, part), path.join(work, 'nitro', part), {
         recursive: true,
         dereference: true,
@@ -68,7 +68,7 @@ test('actual Hermes and Nitro bindings preserve binary, clone, format and async 
       { recursive: true, dereference: true },
     );
     fs.copyFileSync(path.join(ROOT, 'tests/hermes/host.cpp'), path.join(work, 'host.cpp'));
-    const nitro = path.join(work, 'nitro/cpp');
+    const nitro = path.join(work, 'nitro/cpp/core');
     const publicHeaders = path.join(work, 'include/NitroModules');
     fs.mkdirSync(publicHeaders, { recursive: true });
     const includes = nitroHeaderMap(nitro, publicHeaders);
@@ -89,7 +89,7 @@ test('actual Hermes and Nitro bindings preserve binary, clone, format and async 
       '-I',
       path.join(work, 'xxhash/generated'),
       '-I',
-      path.join(work, 'nitro/ios/threading'),
+      path.join(work, 'nitro/apple/core/threading'),
     ];
     for (const directory of includes) arguments_.push('-I', directory);
     const sources = filesUnder(
@@ -98,8 +98,8 @@ test('actual Hermes and Nitro bindings preserve binary, clone, format and async 
         file.endsWith('.cpp') && !path.relative(nitro, file).split(path.sep).includes('views'),
     );
     for (const part of [
-      'nitro/ios/platform',
-      'nitro/ios/threading',
+      'nitro/apple/core/platform',
+      'nitro/apple/core/threading',
       'xxhash/generated',
       'xxhash/cpp',
     ]) {

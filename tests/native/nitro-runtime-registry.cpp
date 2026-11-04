@@ -6,12 +6,15 @@
 #include "ThreadUtils.hpp"
 
 #include <barrier>
+#include <functional>
 #include <hermes/hermes.h>
 #include <iostream>
+#include <jsi/decorator.h>
 #include <jsi/instrumentation.h>
 #include <memory>
 #include <stdexcept>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace margelo::nitro {
@@ -44,6 +47,29 @@ class DispatcherStub final : public Dispatcher {
 public:
   void runSync(std::function<void()>&& callback) override { callback(); }
   void runAsync(std::function<void()>&& callback) override { callback(); }
+};
+
+class PrototypeHookRuntime final : public jsi::RuntimeDecorator<> {
+public:
+  explicit PrototypeHookRuntime(std::unique_ptr<facebook::hermes::HermesRuntime> runtime)
+      : RuntimeDecorator(*runtime), runtime_(std::move(runtime)) {}
+
+  void setPrototypeHook(std::function<void(jsi::Runtime&)>&& hook) { prototypeHook_ = std::move(hook); }
+
+protected:
+  jsi::Object createObjectWithPrototype(const jsi::Value& prototype) override {
+    // Nitro 0.37.2 uses the native JSI API instead of the Object.create getter.
+    // Fire once so nested cache setup cannot recursively re-enter this hook.
+    if (prototypeHook_) {
+      auto hook = std::exchange(prototypeHook_, {});
+      hook(*this);
+    }
+    return RuntimeDecorator::createObjectWithPrototype(prototype);
+  }
+
+private:
+  std::unique_ptr<facebook::hermes::HermesRuntime> runtime_;
+  std::function<void(jsi::Runtime&)> prototypeHook_;
 };
 
 void require(bool condition, const char* message) {
@@ -184,7 +210,7 @@ void prepareReentrantCacheFailure(jsi::Runtime& runtime, std::size_t& failures) 
   )JS");
 }
 
-void finishReentrantRecovery(std::unique_ptr<facebook::hermes::HermesRuntime>& runtime) {
+template <typename RuntimeType> void finishReentrantRecovery(std::unique_ptr<RuntimeType>& runtime) {
   initialize(*runtime);
   checkCounts(1);
   evaluate(*runtime, "globalThis.savedOldCache = undefined;");
@@ -229,15 +255,17 @@ void checkLookupFailureBeforeCacheCreation() {
 
 void checkReentrantLookupRecovery(bool prototypeLookup) {
   checkCounts(0);
-  auto runtime = makeHermesRuntime();
+  auto runtime = std::make_unique<PrototypeHookRuntime>(makeHermesRuntime());
   std::size_t failures = 0;
   prepareReentrantCacheFailure(*runtime, failures);
-  runtime->global().setProperty(*runtime, "lookupName",
-                                jsi::String::createFromAscii(*runtime, prototypeLookup ? "create" : "freeze"));
-  evaluate(*runtime, R"JS(
-    globalThis.lookupCalls = 0;
-    const original = Object[globalThis.lookupName];
-    Object.defineProperty(Object, globalThis.lookupName, {
+  evaluate(*runtime, "globalThis.lookupCalls = 0;");
+  if (prototypeLookup) {
+    runtime->setPrototypeHook(
+        [](jsi::Runtime& current) { evaluate(current, "++globalThis.lookupCalls; tryCache();"); });
+  } else {
+    evaluate(*runtime, R"JS(
+    const original = Object.freeze;
+    Object.defineProperty(Object, 'freeze', {
       configurable: true,
       get() {
         ++globalThis.lookupCalls;
@@ -246,6 +274,7 @@ void checkReentrantLookupRecovery(bool prototypeLookup) {
       }
     });
   )JS");
+  }
   {
     if (prototypeLookup) {
       PrototypeStub prototype;

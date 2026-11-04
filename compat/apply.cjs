@@ -149,7 +149,7 @@ function inspectTarget(target, before) {
   }
   const source = before.replaceAll('\r\n', '\n');
   // Phase-2 splicing can form comment delimiters before C++ tokenization.
-  // Known 0.37.1 headers contain no continuations; reject ambiguous custom
+  // Known supported sources contain no continuations; reject ambiguous custom
   // sources, including Clang's whitespace-after-backslash extension.
   if (/\\[ \t\v\f]*\n/.test(source))
     throw new Error(`Unsupported C++ line continuation in ${target.path}. No files were changed.`);
@@ -162,7 +162,7 @@ function inspectTarget(target, before) {
   else if (method === patched) status = 'fixed';
   else {
     throw new Error(
-      `Unexpected source in ${target.path}; the known Nitro 0.37.1 method has changed. ` +
+      `Unexpected source in ${target.path}; the known Nitro ${definitions.package.version} method has changed. ` +
         'No files were changed. Review your existing dependency patches before applying this backport.',
     );
   }

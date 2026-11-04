@@ -63,7 +63,7 @@ XXH64 and XXH3-64 are different algorithms. Use the same algorithm, encoding and
 
 ## Runtime requirements
 
-React Native **0.88+**, iOS **15.1+** or Android **API 24+**, and **Nitro Modules exactly 0.37.1**. Follow [installation](installation.md) for the required Nitro repair and [compatibility](compatibility.md) for host toolchain configuration. Expo requires a development build.
+React Native **0.88+**, iOS **15.1+** or Android **API 24+**, and **Nitro Modules exactly 0.37.2**. Follow [installation](installation.md) for the required Nitro repair and [compatibility](compatibility.md) for host toolchain configuration. Expo requires a development build.
 
 Strings are encoded as UTF-8. Binary views preserve their original allocation, offset and length. Files must stay stable while native reading is in progress. See [input contracts](api/inputs-and-outputs.md) and [cancellation and errors](guides/errors-and-cancellation.md) before integrating untrusted or cancellable sources.
 

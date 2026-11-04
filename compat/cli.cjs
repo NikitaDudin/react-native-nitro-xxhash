@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 const { runCompatibility } = require('./apply.cjs');
+const definitions = require('./patches.json');
 
 const HELP = `Usage: nitro-xxhash-compat [--check] [--nitro-path PATH]
 
-Explicitly repair Nitro 0.37.1 cache/reference lifetimes and runtime registries; apply
-the upstream Xcode 27/iOS below 18 exception fixes. No automatic hook is used.
+Explicitly repair Nitro ${definitions.package.version} cache/reference lifetimes,
+runtime registries and worker startup. No automatic hook is used.
 
   --check             Read-only check: exit 0 fixed, 1 needs patch, 2 error
   --nitro-path PATH   Select the installed react-native-nitro-modules directory
@@ -15,8 +16,8 @@ An unsupported consumer version is never replaced by a fallback dependency.
 After applying, rebuild Nitro and every native C++/Swift consumer of Nitro headers.
 Read-only/PnP stores: use your package manager's patched-dependency workflow
 with compat/patches.json instead of changing immutable dependency files.
-iOS upstream: https://github.com/margelo/nitro/pull/1824
-Cache/reference/registry repairs are local. Object layouts are unchanged; compiled Nitro code also changes.
+Xcode 27/iOS exception fixes are already included in the supported Nitro release.
+Repairs are local. Object layouts are unchanged; compiled Nitro code also changes.
 `;
 
 function parseArguments(arguments_) {

@@ -23,7 +23,7 @@ function replaceExactlyOnce(source, before, after) {
 
 function sources(installed) {
   const targets = definitions.targets.filter(
-    (target) => target.path === 'cpp/threading/ThreadPool.cpp',
+    (target) => target.path === 'cpp/core/threading/ThreadPool.cpp',
   );
   assert(targets.length > 0, 'missing Nitro ThreadPool compatibility patch');
   let clean = fs.readFileSync(installed, 'utf8');
@@ -154,7 +154,7 @@ test(
   () => {
     withTemporaryDirectory('nitro-xxhash-threadpool-startup-', (work) => {
       const compiler = requiredExecutable('clang++');
-      const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp');
+      const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp/core');
       const includes = nitroHeaderMap(nitro, path.join(work, 'NitroModules'));
       const fixture = path.join(ROOT, 'tests/native/threadpool-startup');
       const variants = sources(path.join(nitro, 'threading/ThreadPool.cpp'));

@@ -44,7 +44,7 @@ test(
     ]);
     assert.equal(spec.pod_target_xcconfig.XXHASH_OPTIMIZE_DEBUG, 'YES');
     assert.equal(spec.pod_target_xcconfig.XXHASH_OPTIMIZE_RELEASE, 'YES');
-    assert(spec.pod_target_xcconfig.HEADER_SEARCH_PATHS.includes('$(PODS_ROOT)/Headers/Private'));
+    assert.equal(spec.pod_target_xcconfig.HEADER_SEARCH_PATHS, undefined);
     const disabled = readSpec({ debug: ' no ', release: 'no' });
     validatePodspecSourceLayout(disabled);
     assert.equal(disabled.pod_target_xcconfig.XXHASH_OPTIMIZE_DEBUG, 'NO');
@@ -81,6 +81,9 @@ test(
       (spec) => {
         spec.pod_target_xcconfig.XXHASH_RELEASE_KERNEL_FLAGS_Debug_YES = '-O2';
       },
+      (spec) => {
+        spec.pod_target_xcconfig.HEADER_SEARCH_PATHS = '$(PODS_ROOT)/Headers/Private';
+      },
     ]) {
       const spec = readSpec();
       mutate(spec);
@@ -97,12 +100,12 @@ function createPodfile(directory) {
     path.join(nitro, 'NitroModules.podspec.json'),
     JSON.stringify({
       name: 'NitroModules',
-      version: '0.37.1',
+      version: '0.37.2',
       summary: 'Local project-generation fixture',
       homepage: 'https://example.test/nitro',
       license: { type: 'MIT', text: 'Fixture only' },
       authors: 'Fixture',
-      source: { git: 'https://example.test/nitro.git', tag: '0.37.1' },
+      source: { git: 'https://example.test/nitro.git', tag: '0.37.2' },
       platforms: { ios: '15.1' },
       source_files: 'stub.cpp',
       static_framework: true,

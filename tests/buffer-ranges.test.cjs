@@ -12,7 +12,7 @@ const {
 
 test('real Nitro and JSI buffers preserve exact native byte ranges', () => {
   const compiler = requiredExecutable('clang++');
-  const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp');
+  const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp/core');
   const jsi = path.join(ROOT, 'node_modules/react-native/ReactCommon/jsi');
   withTemporaryDirectory('nitro-xxhash-buffer-ranges-', (directory) => {
     const headers = path.join(directory, 'NitroModules');

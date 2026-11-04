@@ -10,7 +10,9 @@ const { runCompatibility } = require('../compat/apply.cjs');
 const definitions = require('../compat/patches.json');
 
 const ROOT = resolve(__dirname, '..');
-const INSTALLED = dirname(require.resolve('react-native-nitro-modules/package.json'));
+const INSTALLED =
+  process.env.NITRO_REGISTRY_SOURCE ||
+  dirname(require.resolve('react-native-nitro-modules/package.json'));
 const TARGET_PATHS = [...new Set(definitions.targets.map((target) => target.path))];
 const AGP_KEYS = ['android.builtInKotlin', 'android.newDsl'];
 
@@ -20,7 +22,7 @@ function replaceTargets(source, relativePath, from, to) {
   return source;
 }
 
-function project(t, { version = '0.37.1', nitro = true, properties = '' } = {}) {
+function project(t, { version = '0.37.2', nitro = true, properties = '' } = {}) {
   const root = fs.mkdtempSync(join(tmpdir(), 'nitro-xxhash-expo-plugin-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'expo-plugin-fixture' }));
@@ -146,12 +148,12 @@ for (const platform of ['ios', 'android']) {
   });
 
   test(`${platform} refuses unsupported host Nitro without falling back or writing`, async (t) => {
-    const fixture = project(t, { version: '0.37.2' });
+    const fixture = project(t, { version: '0.37.1' });
     const before = sources(fixture.directory);
     const installedBefore = identities(INSTALLED);
     await assert.rejects(
       compile(fixture, platform),
-      /Expected react-native-nitro-modules@0\.37\.1/,
+      /Expected react-native-nitro-modules@0\.37\.2/,
     );
     assert.deepEqual(sources(fixture.directory), before);
     assert.deepEqual(identities(INSTALLED), installedBefore);

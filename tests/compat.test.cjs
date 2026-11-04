@@ -29,7 +29,7 @@ function temporary(t) {
   return directory;
 }
 
-function fixture(directory, version = '0.37.1') {
+function fixture(directory, version = '0.37.2') {
   fs.mkdirSync(directory, { recursive: true });
   const manifest = JSON.parse(fs.readFileSync(join(INSTALLED, 'package.json'), 'utf8'));
   fs.writeFileSync(join(directory, 'package.json'), JSON.stringify({ ...manifest, version }));
@@ -88,6 +88,50 @@ test('applies every known compatibility target and preserves unrelated patches',
   assert.equal(runCompatibility({ nitroPath: directory }).status, 'already-fixed');
   assert.equal(runCompatibility({ nitroPath: directory, check: true }).status, 'already-fixed');
   assert.deepEqual(snapshot(directory), fixed);
+});
+
+test('keeps upstream iOS exception repairs outside the compatibility patch set', (t) => {
+  const directory = fixture(join(temporary(t), 'nitro'));
+  const upstreamPaths = ['apple/core/utils/RuntimeError.hpp', 'cpp/core/core/Promise.hpp'];
+  const originals = upstreamPaths.map((relativePath) => {
+    assert(!targetPaths().includes(relativePath), 'Do not reapply an upstream exception repair');
+    const source = fs.readFileSync(join(INSTALLED, relativePath), 'utf8');
+    const target = join(directory, relativePath);
+    fs.mkdirSync(dirname(target), { recursive: true });
+    fs.writeFileSync(target, source);
+    return source;
+  });
+  assert(originals[0].includes('return std::current_exception();'));
+  assert(originals[1].includes('reject(std::current_exception());'));
+  assert.equal(runCompatibility({ nitroPath: directory }).status, 'applied');
+  for (const [index, relativePath] of upstreamPaths.entries())
+    assert.equal(fs.readFileSync(join(directory, relativePath), 'utf8'), originals[index]);
+});
+
+test('rebases runtime registry repair without losing upstream Object and Promise behavior', (t) => {
+  const directory = fixture(join(temporary(t), 'nitro'));
+  const relativePath = 'cpp/core/utils/CommonGlobals.cpp';
+  const before = fs.readFileSync(join(directory, relativePath), 'utf8');
+  const sections = [
+    ['jsi::Object CommonGlobals::Object::create(', 'void CommonGlobals::Object::defineProperty('],
+    [
+      'jsi::Value CommonGlobals::Promise::resolved(',
+      'jsi::Value CommonGlobals::Promise::callConstructor(',
+    ],
+  ];
+  assert(before.includes('if constexpr (requires { Object::create(runtime, prototype); })'));
+  assert.equal(
+    before.match(/(?:resolvedFunc|rejectedFunc)\.callWithThis\(runtime, promiseCtor/g)?.length,
+    3,
+  );
+  assert.equal(runCompatibility({ nitroPath: directory }).status, 'applied');
+  const after = fs.readFileSync(join(directory, relativePath), 'utf8');
+  assert(after.includes('globalFunctionRegistryExisting'));
+  for (const [start, end] of sections)
+    assert.equal(
+      after.slice(after.indexOf(start), after.indexOf(end)),
+      before.slice(before.indexOf(start), before.indexOf(end)),
+    );
 });
 
 test('--check reports needs/fixed without writing and repeated apply is harmless', (t) => {
@@ -167,18 +211,18 @@ test('an unknown later hunk in the same file rejects before staging earlier repa
   assert.deepEqual(snapshot(directory), before);
 });
 
-test('recognizes existing app and upstream comment variants without rewriting either file', (t) => {
+test('recognizes application comment variants without rewriting repaired files', (t) => {
   const directory = fixture(join(temporary(t), 'nitro'));
   patchOne(directory, 0, (source) =>
     source.replace(
-      '  try {',
-      '  // Xcode 27 Swift C++ interop otherwise emits an iOS 18+ libc++ symbol.\n  try {',
+      definitions.targets[0].signature,
+      definitions.targets[0].signature + '\n  // Application compatibility explanation.',
     ),
   );
   patchOne(directory, 1, (source) =>
     source.replace(
-      '      try {',
-      '      // TODO: Switch to std::make_exception_ptr when upstream compatibility allows.\n      try {',
+      definitions.targets[1].signature,
+      definitions.targets[1].signature + '\n  // Keep the local cache ownership repair.',
     ),
   );
   for (let index = 2; index < definitions.targets.length; index += 1) patchOne(directory, index);
@@ -204,11 +248,11 @@ test('preserves CRLF without rewriting unrelated line endings', (t) => {
 });
 
 test('refuses another package name or version before changing files', (t) => {
-  const directory = fixture(join(temporary(t), 'nitro'), '0.37.2');
+  const directory = fixture(join(temporary(t), 'nitro'), '0.37.1');
   const before = snapshot(directory);
   assert.throws(
     () => runCompatibility({ nitroPath: directory }),
-    /Expected react-native-nitro-modules@0.37.1/,
+    /Expected react-native-nitro-modules@0.37.2/,
   );
   assert.equal(cli(['--check', '--nitro-path', directory], directory).status, 2);
   assert.deepEqual(snapshot(directory), before);
@@ -216,9 +260,9 @@ test('refuses another package name or version before changing files', (t) => {
   const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
   fs.writeFileSync(
     path,
-    JSON.stringify({ ...manifest, name: 'different-package', version: '0.37.1' }),
+    JSON.stringify({ ...manifest, name: 'different-package', version: '0.37.2' }),
   );
-  assert.throws(() => runCompatibility({ nitroPath: directory }), /different-package@0.37.1/);
+  assert.throws(() => runCompatibility({ nitroPath: directory }), /different-package@0.37.2/);
   assert.deepEqual(snapshot(directory), before);
 });
 
@@ -232,14 +276,17 @@ test('all-file preflight rejects unknown second method without writing the first
       .readFileSync(path, 'utf8')
       .replace(
         target.original,
-        target.original.replace('std::runtime_error(message)', 'std::logic_error(message)'),
+        target.original.replace(
+          target.signature,
+          target.signature + '\n  static constexpr int unexpectedCompatibilityFixture = 1;',
+        ),
       ),
   );
   const before = snapshot(directory);
   const io = { ...fs, writeFileSync: () => assert.fail('Preflight must not write any file') };
   assert.throws(
     () => runCompatibility({ nitroPath: directory, io }),
-    /Unexpected source in cpp\/core\/Promise.hpp/,
+    /Unexpected source in cpp\/core\/utils\/BorrowingReference.hpp/,
   );
   assert.deepEqual(snapshot(directory), before);
 });
@@ -326,10 +373,10 @@ test('line-continuation comments cannot hide statements in an apparently fixed m
   const directory = fixture(join(temporary(t), 'nitro'));
   patchOne(directory, 0, (source) =>
     source.replace(
-      '    throw std::runtime_error(message);',
-      '    // This continuation hides the throw. ' +
+      '    return oldRefCount == 1;',
+      '    // This continuation hides the return. ' +
         String.fromCharCode(92) +
-        '\n    throw std::runtime_error(message);',
+        '\n    return oldRefCount == 1;',
     ),
   );
   patchOne(directory, 1);
@@ -354,7 +401,9 @@ test('refuses duplicate or missing signatures instead of selecting a different h
   assert.deepEqual(snapshot(directory), duplicate);
   fs.writeFileSync(
     path,
-    fs.readFileSync(path, 'utf8').replaceAll('makeException(', 'differentHelper('),
+    fs
+      .readFileSync(path, 'utf8')
+      .replaceAll(target.signature, target.signature.replace(' {', '  {')),
   );
   const missing = snapshot(directory);
   assert.throws(
@@ -641,9 +690,9 @@ test('importing helper or CLI never modifies dependencies, writes output or runs
   assert.equal(runCompatibility({ nitroPath: directory, check: true }).status, 'needs-patch');
 });
 
-test('unknown cache source rejects before creating any staged file or changing iOS fixes', (t) => {
+test('unknown cache source rejects before creating any staged file or applying other repairs', (t) => {
   const directory = fixture(join(temporary(t), 'nitro'));
-  const target = definitions.targets.find((entry) => entry.path === 'cpp/jsi/JSICache.hpp');
+  const target = definitions.targets.find((entry) => entry.path === 'cpp/core/jsi/JSICache.hpp');
   const targetPath = join(directory, target.path);
   fs.writeFileSync(
     targetPath,
@@ -655,7 +704,7 @@ test('unknown cache source rejects before creating any staged file or changing i
   const io = { ...fs, openSync: () => assert.fail('Unknown cache sources must not stage a file') };
   assert.throws(
     () => runCompatibility({ nitroPath: directory, io }),
-    /Unexpected source in cpp\/jsi\/JSICache.hpp/,
+    /Unexpected source in cpp\/core\/jsi\/JSICache.hpp/,
   );
   assert.deepEqual(snapshot(directory), before);
 });

@@ -4,6 +4,19 @@ Notable changes to `react-native-nitro-xxhash` are documented here.
 
 ## Unreleased
 
+## 0.2.0 - 2026-11-04
+
+### Changed
+
+- Require Nitro Modules 0.37.2; applications using 0.37.1 must upgrade Nitro and rebuild their native dependencies before adopting this release. The hashing API and platform baseline are unchanged.
+- Regenerate bindings with Nitrogen 0.37.2 and migrate native validation to Nitro's reorganized core and Apple sources.
+- Rebase the remaining explicit compatibility repairs onto 0.37.2 while preserving upstream `Object.create` detection and `Promise.resolve` / `Promise.reject` receiver fixes.
+
+### Removed
+
+- Remove the compatibility backports for Swift/C++ exception conversion, now included in Nitro 0.37.2.
+- Remove the CocoaPods private-header search path workaround now that Nitro publishes `ThreadPool.hpp` as a public header.
+
 ## 0.1.2 - 2026-10-30
 
 ### Changed

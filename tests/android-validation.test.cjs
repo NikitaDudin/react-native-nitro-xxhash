@@ -24,11 +24,19 @@ test('Android validation copies isolate linked SDK sources before modifying fixt
     fs.symlinkSync(originalSources, path.join(source, 'src'), 'dir');
     fs.mkdirSync(path.join(source, 'build'));
     fs.writeFileSync(path.join(source, 'build/stale.bin'), 'omit build artifacts');
+    for (const relative of ['example/ios/Pods', 'website', 'Pods']) {
+      const ignored = path.join(source, relative);
+      fs.mkdirSync(ignored, { recursive: true });
+      // Old CocoaPods header maps can contain dangling links after an SDK update.
+      fs.symlinkSync(path.join(temporary, 'missing-header.hpp'), path.join(ignored, 'stale.hpp'));
+    }
 
     copyAndroidValidationFixture(source, fixture);
     assert(!fs.lstatSync(path.join(fixture, 'gradle.properties')).isSymbolicLink());
     assert(!fs.lstatSync(path.join(fixture, 'src')).isSymbolicLink());
     assert(!fs.existsSync(path.join(fixture, 'build')));
+    for (const ignored of ['example', 'website', 'Pods'])
+      assert(!fs.existsSync(path.join(fixture, ignored)));
     fs.writeFileSync(path.join(fixture, 'gradle.properties'), 'fixture properties');
     fs.writeFileSync(path.join(fixture, 'src/source.cpp'), 'fixture source');
 

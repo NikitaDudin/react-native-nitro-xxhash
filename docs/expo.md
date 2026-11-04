@@ -12,13 +12,13 @@ Install the package and its exact Nitro peer:
 **npm**
 
 ```sh
-npx expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.1 --npm
+npx expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.2 --npm
 ```
 
 **Yarn**
 
 ```sh
-yarn expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.1 --yarn
+yarn expo install react-native-nitro-xxhash react-native-nitro-modules@0.37.2 --yarn
 ```
 
 Register the bundled config plugin in your app configuration:
@@ -53,7 +53,7 @@ Expo SDK 58 recreates the native directories by default. Use `npx expo prebuild 
 
 | Option                      | Default   | Behavior                                                                                                                                                                       |
 | --------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `nitroCompatibility`        | `"apply"` | Applies the guarded [Nitro repairs](compatibility.md#nitro-0371-repairs) during native generation. Use `"check"` to require repairs already persisted by your package manager. |
+| `nitroCompatibility`        | `"apply"` | Applies the guarded [Nitro repairs](compatibility.md#nitro-0372-repairs) during native generation. Use `"check"` to require repairs already persisted by your package manager. |
 | `android.agp9Compatibility` | `false`   | Set to `true` only for AGP 9 hosts to write `android.builtInKotlin=false` and `android.newDsl=false` to the application's `gradle.properties`. These affect the whole app.     |
 
 Adding the plugin explicitly enables its default repair behavior. It reuses the compatibility helper; unsupported Nitro versions, conflicting sources and missing repairs in `"check"` mode stop prebuild. Repairs run during native generation, not while importing the plugin or evaluating the app configuration. Repeated prebuilds safely reuse existing repairs.
@@ -62,4 +62,4 @@ Expo SDK 58 templates may already supply the AGP 9 switches. Leave `android.agp9
 
 The plugin preserves the host's SDK, NDK and deployment target choices. Configure supported Expo build settings through [`expo-build-properties`](https://docs.expo.dev/versions/latest/sdk/build-properties/). Native autolinking is already supplied by this package; no hashing permissions or application lifecycle changes are added.
 
-When prebuild is skipped, including builds using committed native directories, the plugin cannot prepare Nitro. Apply the [manual helper](compatibility.md#nitro-0371-repairs) after dependency installation or persist the repairs with your package manager. Rebuild Nitro and all consumers together after a repair changes native sources.
+When prebuild is skipped, including builds using committed native directories, the plugin cannot prepare Nitro. Apply the [manual helper](compatibility.md#nitro-0372-repairs) after dependency installation or persist the repairs with your package manager. Rebuild Nitro and all consumers together after a repair changes native sources.

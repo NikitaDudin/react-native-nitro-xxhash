@@ -61,7 +61,7 @@ function main() {
   const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp');
   const reactCommon = path.join(ROOT, 'node_modules/react-native/ReactCommon');
   const generated = path.join(ROOT, 'nitrogen/generated/shared/c++');
-  requireFile(path.join(nitro, 'core/HybridObject.hpp'));
+  requireFile(path.join(nitro, 'core/core/HybridObject.hpp'));
   requireFile(path.join(reactCommon, 'jsi/jsi/jsi.h'));
   requireFile(path.join(generated, 'HybridFileHasherSpec.hpp'));
   run(compiler, ['--version']);

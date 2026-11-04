@@ -13,7 +13,7 @@ const {
 
 test('native implementations and generated bindings compile against real Nitro/RN headers', () => {
   const compiler = requiredExecutable('clang++');
-  const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp');
+  const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules/cpp/core');
   const reactCommon = path.join(ROOT, 'node_modules/react-native/ReactCommon');
   const generated = path.join(ROOT, 'nitrogen/generated/shared/c++');
   for (const file of [

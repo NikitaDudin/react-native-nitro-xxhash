@@ -6,21 +6,21 @@ Native **XXH32, XXH64, XXH3-64 and XXH3-128** for React Native, powered by [Nitr
 
 ## Installation
 
-Requires React Native **0.88+**, iOS **15.1+** or Android **API 24+**, and **Nitro Modules exactly 0.37.1**.
+Requires React Native **0.88+**, iOS **15.1+** or Android **API 24+**, and **Nitro Modules exactly 0.37.2**.
 
 For a bare React Native application:
 
 **npm**
 
 ```sh
-npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.2
 npx --no-install nitro-xxhash-compat
 ```
 
 **Yarn**
 
 ```sh
-yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.2
 yarn nitro-xxhash-compat
 ```
 

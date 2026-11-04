@@ -7,7 +7,7 @@ const definitions = require('../../compat/patches.json');
 /**
  * Prepare real patched Nitro headers with test-only cache observation hooks.
  * The caller owns this disposable directory and must clean it after compilation.
- * Returns the copied cpp root for compiler include directories/header mapping.
+ * Returns the copied core C++ root for compiler includes and header mapping.
  */
 function createNitroCacheFixture(directory, sourceDirectory) {
   const installed =
@@ -21,7 +21,6 @@ function createNitroCacheFixture(directory, sourceDirectory) {
     // A filter selects the copy path that gives this fixture its own file bytes.
     filter: () => true,
   });
-  fs.mkdirSync(path.join(directory, 'ios/utils'), { recursive: true });
   for (const relativePath of new Set(definitions.targets.map((target) => target.path))) {
     const targetPath = path.join(directory, relativePath);
     fs.mkdirSync(path.dirname(targetPath), { recursive: true });
@@ -39,7 +38,7 @@ function createNitroCacheFixture(directory, sourceDirectory) {
 
   // Only the disposable copy gets observation hooks. They add no instance fields
   // and do not alter reference ownership or the production pruning algorithm.
-  const cachePath = path.join(directory, 'cpp/jsi/JSICache.hpp');
+  const cachePath = path.join(directory, 'cpp/core/jsi/JSICache.hpp');
   let cache = fs.readFileSync(cachePath, 'utf8');
   cache = cache.replace(
     'class JSICacheReference final {\npublic:',
@@ -47,7 +46,7 @@ function createNitroCacheFixture(directory, sourceDirectory) {
       '  template <typename T> static void cacheProbeRetain(std::vector<WeakReference<T>>& entries, const BorrowingReference<T>& owner) { retain(entries, owner); }\n',
   );
   fs.writeFileSync(cachePath, cache);
-  const weakPath = path.join(directory, 'cpp/utils/WeakReference.hpp');
+  const weakPath = path.join(directory, 'cpp/core/utils/WeakReference.hpp');
   let weak = fs.readFileSync(weakPath, 'utf8');
   weak = weak.replace(
     'namespace margelo::nitro {',
@@ -58,7 +57,7 @@ function createNitroCacheFixture(directory, sourceDirectory) {
     'bool expired() const noexcept {\n    ++cacheProbeExpiredChecks;',
   );
   fs.writeFileSync(weakPath, weak);
-  const statePath = path.join(directory, 'cpp/utils/ReferenceState.hpp');
+  const statePath = path.join(directory, 'cpp/core/utils/ReferenceState.hpp');
   let state = fs.readFileSync(statePath, 'utf8');
   state = state.replace(
     'struct ReferenceState {',
@@ -69,7 +68,7 @@ function createNitroCacheFixture(directory, sourceDirectory) {
     'explicit ReferenceState() : strongRefCount(1), weakRefCount(1), isDeleted(false) { ++cacheProbeLiveStates; }\n  ~ReferenceState() { --cacheProbeLiveStates; }',
   );
   fs.writeFileSync(statePath, state);
-  return path.join(directory, 'cpp');
+  return path.join(directory, 'cpp/core');
 }
 
 module.exports = { createNitroCacheFixture };

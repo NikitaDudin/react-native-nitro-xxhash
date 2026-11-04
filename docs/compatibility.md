@@ -8,7 +8,7 @@ description: React Native, Nitro, platform and native toolchain requirements, co
 | Component     | Requirement                                                            |
 | ------------- | ---------------------------------------------------------------------- |
 | React Native  | 0.88.0 or newer, New Architecture / JSI.                               |
-| Nitro Modules | Exactly 0.37.1 on both platforms.                                      |
+| Nitro Modules | Exactly 0.37.2 on both platforms.                                      |
 | Node.js       | `^22.13.0 \|\| ^24.3.0 \|\| >=26.0.0`.                                 |
 | iOS           | 15.1 or newer; newer React Native requirements still apply.            |
 | Android       | API 24 or newer; Java 17 and C++20.                                    |
@@ -67,34 +67,36 @@ For unoptimized kernel debugging, set `xxhashOptimizeDebug=false` in the applica
 
 ### Android Gradle Plugin 9
 
-Nitro 0.37.1 applies the Kotlin Android plugin and uses legacy Gradle APIs. AGP 9 hosts need these application `gradle.properties` settings:
+Nitro 0.37.2 applies the Kotlin Android plugin and uses legacy Gradle APIs. AGP 9 hosts need these application `gradle.properties` settings:
 
 ```properties
 android.builtInKotlin=false
 android.newDsl=false
 ```
 
-AGP 8 hosts do not need these switches. For Expo prebuild, the [config plugin](#expo-prebuild) can write them when `android.agp9Compatibility` is explicitly enabled; otherwise configure them in the host. See [AGP 9 migration guidance](https://developer.android.com/build/releases/agp-9-0-0-release-notes) and [built-in Kotlin migration](https://developer.android.com/build/migrate-to-built-in-kotlin). Using AGP 9 built-in Kotlin requires compatible changes in Nitro.
+The validated React Native 0.88 profile uses AGP 9.3.1 and Gradle 9.6. Nitro 0.37.2 also [declares AGP 9.3.1 in its buildscript](https://github.com/margelo/nitro/blob/v0.37.2/packages/react-native-nitro-modules/android/build.gradle); AGP 8 compatibility has not been established for this release. For Expo prebuild, the [config plugin](#expo-prebuild) can write the switches above when `android.agp9Compatibility` is explicitly enabled; otherwise configure them in the host. See [AGP 9 migration guidance](https://developer.android.com/build/releases/agp-9-0-0-release-notes) and [built-in Kotlin migration](https://developer.android.com/build/migrate-to-built-in-kotlin). Using AGP 9 built-in Kotlin requires compatible changes in Nitro.
 
-## Nitro 0.37.1 repairs
+## Nitro 0.37.2 repairs
+
+Version 0.2.0 requires Nitro 0.37.2 and no longer supports 0.37.1. Nitro installs its matching `nitro-core` package automatically. When upgrading from 0.1.x, rebase application-owned Nitro patches against the new sources instead of reusing the old patch unchanged. Drop the exception backports now supplied upstream and preserve any other application-specific fixes. Keep one owner for the resulting Nitro patch.
 
 Install the exact required peer and apply the explicit compatibility helper from your application root:
 
 **npm**
 
 ```sh
-npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+npm install react-native-nitro-xxhash react-native-nitro-modules@0.37.2
 npx --no-install nitro-xxhash-compat
 ```
 
 **Yarn**
 
 ```sh
-yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.1
+yarn add react-native-nitro-xxhash react-native-nitro-modules@0.37.2
 yarn nitro-xxhash-compat
 ```
 
-Run this on **Android and iOS before any native build or pod install**. Expo projects using the [config plugin](#expo-prebuild) in `"apply"` mode perform this step during prebuild. The helper repairs Nitro cache/reference lifetimes, runtime registries and Xcode 27 exception interoperability. It validates the installed version and known source contents before changing files; unsupported versions or conflicting patches are refused. [Repair definitions](https://github.com/NikitaDudin/react-native-nitro-xxhash/blob/main/compat/patches.json) record the exact changes and their provenance.
+Run this on **Android and iOS before any native build or pod install**. Expo projects using the [config plugin](#expo-prebuild) in `"apply"` mode perform this step during prebuild. The helper repairs Nitro cache/reference lifetimes, runtime registries, Debug diagnostic synchronization and worker-pool startup. It validates the installed version and known source contents before changing files; unsupported versions or conflicting patches are refused. [Repair definitions](https://github.com/NikitaDudin/react-native-nitro-xxhash/blob/main/compat/patches.json) record the exact changes and their provenance.
 
 The command changes the installed Nitro dependency shared by every Nitro library in the app. Clean stale native build artifacts and **rebuild Nitro and all native C++/Swift consumers of its headers together**. Do not mix repaired headers with prebuilt binaries compiled from the original sources.
 
@@ -132,10 +134,10 @@ Yarn Classic uses the required `node_modules` layout by default. With modern Yar
 nodeLinker: node-modules
 ```
 
-The helper requires writable, unpacked Nitro sources. For PnP or read-only stores, use your package manager's dependency-patching workflow to create an editable Nitro 0.37.1 workspace, apply the helper with `--nitro-path`, review the changes and persist the patch. Do not modify a shared package cache in place. If an editable workspace cannot be created, use the shipped repair definitions with the package manager's native patch mechanism.
+The helper requires writable, unpacked Nitro sources. For PnP or read-only stores, use your package manager's dependency-patching workflow to create an editable Nitro 0.37.2 workspace, apply the helper with `--nitro-path`, review the changes and persist the patch. Do not modify a shared package cache in place. If an editable workspace cannot be created, use the shipped repair definitions with the package manager's native patch mechanism.
 
 If the application already maintains custom Nitro patches, merge these repair definitions into that patch while preserving the application's other fixes. Keep one patch owner; the helper intentionally rejects differing sources, so do not chain it after a custom patch.
 
 ## Xcode 27 below iOS 18
 
-Nitro 0.37.1's Swift/C++ exception conversion can import an iOS 18-only libc++ symbol under Xcode 27. The compatibility helper includes the required exception backport for older deployment targets. Raising or lowering the deployment target alone does not replace that repair. See the [upstream issue](https://github.com/margelo/nitro/issues/1652) and [fix](https://github.com/margelo/nitro/pull/1824).
+Nitro 0.37.2 already includes the upstream Swift/C++ exception conversion fix for deployment targets below iOS 18 under Xcode 27. The compatibility helper does not rewrite those exception helpers. Keep the application's deployment target aligned with React Native and its other dependencies. See the [upstream issue](https://github.com/margelo/nitro/issues/1652) and [fix](https://github.com/margelo/nitro/pull/1824).

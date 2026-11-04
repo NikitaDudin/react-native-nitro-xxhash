@@ -1,7 +1,19 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ignored = new Set(['node_modules', '.git', '.gradle', '.cxx', 'build', 'lib']);
+const ignored = new Set([
+  'node_modules',
+  '.git',
+  '.gradle',
+  '.cxx',
+  'build',
+  'lib',
+  'example',
+  'website',
+  'Pods',
+  '.expo',
+  '.artifacts',
+]);
 
 function copyAndroidValidationFixture(source, destination) {
   fs.cpSync(source, destination, {

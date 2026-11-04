@@ -1,4 +1,5 @@
-// Reproduce Nitro's Swift/C++ import regression, then verify the shipped backport.
+// Verify Nitro's upstream Swift/C++ exception fix against disposable negative controls.
+const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { ROOT, directoriesUnder, run, withTemporaryDirectory } = require('./native-test-utils.cjs');
@@ -8,15 +9,32 @@ const deploymentTarget = process.env.IOS_DEPLOYMENT_TARGET || '15.1';
 if (!/^\d+\.\d+(?:\.\d+)?$/.test(deploymentTarget))
   throw new Error('IOS_DEPLOYMENT_TARGET must be an iOS version such as 15.1.');
 
+// These two upstream helpers must stay fixed independently of the local runtime
+// repairs. Reintroduce only the former exception_ptr implementation in a copy.
+const negativeControls = [
+  {
+    path: 'apple/core/utils/RuntimeError.hpp',
+    fixed:
+      '  try {\n    throw std::runtime_error(message);\n  } catch (...) {\n' +
+      '    return std::current_exception();\n  }',
+    broken: '  return std::make_exception_ptr(std::runtime_error(message));',
+  },
+  {
+    path: 'cpp/core/core/Promise.hpp',
+    fixed:
+      '      try {\n        throw std::runtime_error(message);\n      } catch (...) {\n' +
+      '        reject(std::current_exception());\n      }',
+    broken: '      reject(std::make_exception_ptr(std::runtime_error(message)));',
+  },
+];
+
 function main() {
   const source = path.join(ROOT, 'node_modules/react-native-nitro-modules');
   const react = path.join(ROOT, 'node_modules/react-native/ReactCommon/jsi');
   if (!fs.existsSync(source) || !fs.existsSync(react))
-    throw new Error('Run npm ci before checking the compatibility backport.');
-  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'compat/patches.json'), 'utf8'));
+    throw new Error('Run npm ci before checking the upstream compatibility fix.');
   const installed = JSON.parse(fs.readFileSync(path.join(source, 'package.json'), 'utf8'));
-  if (installed.version !== manifest.package.version)
-    throw new Error('This regression fixture requires Nitro 0.37.1.');
+  assert.equal(installed.version, '0.37.2', 'This regression fixture requires Nitro 0.37.2');
   withTemporaryDirectory('nitro-ios-compat-', (root) => {
     const nitro = path.join(root, 'nitro');
     fs.cpSync(source, nitro, {
@@ -25,16 +43,19 @@ function main() {
       // Keep Node 24's unfiltered copy from preserving writable source symlinks.
       filter: () => true,
     });
-    // Reconstruct only known upstream snippets in the disposable copy, including
-    // when a maintainer has already opted into the local backport.
-    for (const target of manifest.targets) {
-      const file = path.join(nitro, target.path);
-      let contents = fs.readFileSync(file, 'utf8');
-      if (contents.split(target.patched).length === 2)
-        contents = contents.replace(target.patched, () => target.original);
-      if (contents.split(target.original).length !== 2)
-        throw new Error(`Unexpected Nitro source: ${target.path}`);
-      fs.writeFileSync(file, contents);
+    const fixedSources = new Map();
+    for (const control of negativeControls) {
+      const contents = fs.readFileSync(path.join(nitro, control.path), 'utf8');
+      assert.equal(
+        contents.split(control.fixed).length,
+        2,
+        `Unknown upstream helper: ${control.path}`,
+      );
+      assert(
+        !contents.includes(control.broken),
+        `Upstream exception repair is missing: ${control.path}`,
+      );
+      fixedSources.set(control.path, contents);
     }
     fs.writeFileSync(
       path.join(root, 'Probe.hpp'),
@@ -67,18 +88,22 @@ inline std::string destroyPendingPromise() {
 `,
     );
     const includes = ['-Xcc', `-I${react}`];
-    for (const base of [path.join(nitro, 'cpp'), path.join(nitro, 'ios')]) {
+    for (const base of [path.join(nitro, 'cpp'), path.join(nitro, 'apple')]) {
       for (const directory of directoriesUnder(base)) includes.push('-Xcc', `-I${directory}`);
     }
-    const cli = [path.join(ROOT, 'compat/cli.cjs'), '--nitro-path', nitro];
     const targets = [
       ['iphoneos', `arm64-apple-ios${deploymentTarget}`],
       ['iphonesimulator', `arm64-apple-ios${deploymentTarget}-simulator`],
     ];
-    for (const phase of ['unpatched', 'patched']) {
-      if (phase === 'patched') {
-        run(process.execPath, cli, { stdio: 'inherit' });
-        run(process.execPath, [...cli, '--check'], { stdio: 'inherit' });
+    for (const phase of ['negative-control', 'upstream-fixed']) {
+      for (const control of negativeControls) {
+        const contents = fixedSources.get(control.path);
+        fs.writeFileSync(
+          path.join(nitro, control.path),
+          phase === 'negative-control'
+            ? contents.replace(control.fixed, () => control.broken)
+            : contents,
+        );
       }
       for (const [sdk, target] of targets) {
         const output = path.join(root, `${phase}-${sdk}`);
@@ -109,7 +134,7 @@ inline std::string destroyPendingPromise() {
             '-explicit-module-build',
             ...includes,
             '-c',
-            path.join(nitro, 'ios/core/RuntimeError.swift'),
+            path.join(nitro, 'apple/core/core/RuntimeError.swift'),
             path.join(root, 'PromiseCheck.swift'),
           ],
           { cwd: output, stdio: 'inherit' },
@@ -118,7 +143,7 @@ inline std::string destroyPendingPromise() {
           const symbols = run('xcrun', ['nm', '-u', path.join(output, name)]).stdout;
           for (const symbol of offending) {
             const present = symbols.includes(symbol);
-            if (present !== (phase === 'unpatched'))
+            if (present !== (phase === 'negative-control'))
               throw new Error(
                 `${phase}/${sdk}/${name}: unexpected import state for ${symbol}; ` +
                   'the compiler may no longer reproduce the regression.',
@@ -127,12 +152,12 @@ inline std::string destroyPendingPromise() {
         }
         console.log(
           `${sdk}/${phase}: actual Nitro RuntimeError.swift and Promise<double> ` +
-            `imports ${phase === 'unpatched' ? 'reproduced' : 'removed'}`,
+            `imports ${phase === 'negative-control' ? 'reproduced' : 'removed'}`,
         );
       }
     }
     console.log(
-      'Backport regression passed without changing installed Nitro. ' +
+      'Upstream exception regression passed without changing installed Nitro. ' +
         'This check compiles Swift objects; application launch is separate.',
     );
   });

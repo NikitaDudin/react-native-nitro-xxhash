@@ -12,7 +12,7 @@ const {
 } = require('../scripts/native-test-utils.cjs');
 
 test('all six Nitro caches use the same bounded amortized retention path', () => {
-  const cache = definitions.targets.find((target) => target.path === 'cpp/jsi/JSICache.hpp');
+  const cache = definitions.targets.find((target) => target.path === 'cpp/core/jsi/JSICache.hpp');
   assert(cache && cache.kind === 'local-cache-lifetime');
   for (const name of ['value', 'object', 'function', 'weakObject', 'propNameID', 'arrayBuffer']) {
     assert(cache.patched.includes(`retain(_strongCache->_${name}Cache, owning);`), name);
@@ -48,7 +48,7 @@ test('real patched Nitro headers preserve concurrent reference lifetimes and amo
         '-O1',
         '-DNDEBUG',
         '-pthread',
-        // Nitro 0.37.1's TypeInfo source relies on a libc++ transitive include.
+        // Nitro 0.37.2's TypeInfo source relies on a libc++ transitive include.
         '-include',
         'unordered_map',
         ...flags,

@@ -351,10 +351,10 @@ function main() {
       };
     }
     const nitro = path.join(ROOT, 'node_modules/react-native-nitro-modules');
-    const nitroScopes = ['cpp', 'ios/platform', 'ios/threading'];
+    const nitroScopes = ['cpp/core', 'apple/core/platform', 'apple/core/threading'];
     const nitroSourceHashes = sourceManifest(nitro, nitroScopes);
     const includes = nitroHeaderMap(
-      path.join(nitro, 'cpp'),
+      path.join(nitro, 'cpp/core'),
       path.join(work, 'include/NitroModules'),
     );
     const arguments_ = [
@@ -368,18 +368,18 @@ function main() {
       '-I',
       path.join(ROOT, 'nitrogen/generated/shared/c++'),
       '-I',
-      path.join(nitro, 'ios/threading'),
+      path.join(nitro, 'apple/core/threading'),
     ];
     for (const directory of includes) arguments_.push('-I', directory);
     const sources = filesUnder(
-      path.join(nitro, 'cpp'),
+      path.join(nitro, 'cpp/core'),
       (file) =>
         file.endsWith('.cpp') &&
-        !path.relative(path.join(nitro, 'cpp'), file).split(path.sep).includes('views'),
+        !path.relative(path.join(nitro, 'cpp/core'), file).split(path.sep).includes('views'),
     );
     for (const directory of [
-      path.join(nitro, 'ios/platform'),
-      path.join(nitro, 'ios/threading'),
+      path.join(nitro, 'apple/core/platform'),
+      path.join(nitro, 'apple/core/threading'),
       path.join(ROOT, 'nitrogen/generated/shared/c++'),
       path.join(ROOT, 'cpp'),
     ]) {
